@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
@@ -32,7 +32,7 @@ class MenuItem(BaseModel):
     name: str
     description: str
     price: float
-    category: str  # tacos, curries, fusion, sides, drinks
+    category: str
     image_url: Optional[str] = None
     is_vegetarian: bool = False
     is_spicy: bool = False
@@ -60,11 +60,11 @@ class Order(BaseModel):
     customer_name: str
     customer_phone: str
     customer_email: Optional[str] = None
-    order_type: str  # dine-in, takeaway, delivery
+    order_type: str
     delivery_address: Optional[str] = None
     items: List[CartItem]
     total: float
-    status: str = "pending"  # pending, confirmed, preparing, ready, delivered
+    status: str = "pending"
     notes: Optional[str] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -114,12 +114,12 @@ class Review(BaseModel):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Tacos & Things API"}
+    return {"message": "Taco's & Things API"}
 
 # Menu routes
 @api_router.get("/menu", response_model=List[MenuItem])
 async def get_menu():
-    items = await db.menu_items.find({}, {"_id": 0}).to_list(100)
+    items = await db.menu_items.find({}, {"_id": 0}).to_list(200)
     return items
 
 @api_router.get("/menu/{category}", response_model=List[MenuItem])
@@ -152,7 +152,6 @@ async def get_order(order_id: str):
 # Newsletter routes
 @api_router.post("/newsletter", response_model=NewsletterSubscription)
 async def subscribe_newsletter(subscription: NewsletterCreate):
-    # Check if already subscribed
     existing = await db.newsletter.find_one({"email": subscription.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already subscribed")
@@ -179,57 +178,138 @@ async def get_reviews():
 # Seed data endpoint
 @api_router.post("/seed")
 async def seed_data():
-    # Check if data already exists
-    menu_count = await db.menu_items.count_documents({})
-    if menu_count > 0:
-        return {"message": "Data already seeded"}
+    # Clear existing menu items and reseed
+    await db.menu_items.delete_many({})
     
-    # Seed menu items
+    # Seed menu items - Full menu from Taco's & Things
     menu_items = [
-        # Tacos
-        {"id": str(uuid.uuid4()), "name": "Tandoori Paneer Taco", "description": "Smoky tandoori-spiced paneer with mint chutney, pickled onions, and cilantro in a soft corn tortilla", "price": 8.50, "category": "tacos", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori Chicken Taco", "description": "Juicy tandoori chicken with raita, mango salsa, and fresh herbs", "price": 9.50, "category": "tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Chicken Taco", "description": "Crispy southern-fried chicken with coleslaw and chipotle mayo", "price": 9.00, "category": "tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1624300629298-e9de39c13be5?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Moroccan Fish Taco", "description": "Spiced fish with harissa aioli, preserved lemon, and arugula", "price": 10.50, "category": "tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Crispy Calamari Taco", "description": "Golden calamari with sriracha lime sauce and Asian slaw", "price": 11.00, "category": "tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Fried Chicken Taco", "description": "Classic fried chicken with honey mustard, pickles, and jalapeños", "price": 9.50, "category": "tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1562059390-a761a084768e?w=400"},
-        
-        # Curries
-        {"id": str(uuid.uuid4()), "name": "Butter Chicken Bowl", "description": "Creamy tomato-based curry with tender chicken, served with basmati rice", "price": 16.50, "category": "curries", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Paneer Tikka Masala", "description": "Grilled paneer in rich spiced tomato gravy with naan bread", "price": 15.50, "category": "curries", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Lamb Rogan Josh", "description": "Slow-cooked lamb in aromatic Kashmiri spices", "price": 18.50, "category": "curries", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1545247181-516773cae754?w=400"},
-        
-        # Fusion
-        {"id": str(uuid.uuid4()), "name": "Tikka Quesadilla", "description": "Cheese quesadilla filled with tikka chicken, peppers, and spiced mayo", "price": 14.50, "category": "fusion", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Masala Nachos", "description": "Crispy nachos loaded with spiced mince, cheese, jalapeños, and raita", "price": 13.50, "category": "fusion", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Curry Burrito", "description": "Large flour tortilla stuffed with curry chicken, rice, beans, and chutney", "price": 15.00, "category": "fusion", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
-        
+        # Most Ordered
+        {"id": str(uuid.uuid4()), "name": "Chips", "description": "Crispy, golden potato fries lightly seasoned with salt.", "price": 8.00, "category": "most-ordered", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chicken Tacos (3 tacos)", "description": "Perfectly spiced up chicken with tangy slaw and salsa", "price": 19.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Chicken (3 tacos)", "description": "Crispy fried chicken topped with fresh pico de gallo, drizzled with spicy sauce, and garnished with cilantro on soft tortillas.", "price": 20.90, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Fish (3 tacos)", "description": "Southern style fried tacos served with salsa", "price": 20.90, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Chicken Burger", "description": "Give it a go to this, you won't regret", "price": 20.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Moroccan", "description": "Fish done with Moroccan spice", "price": 17.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari", "description": "Make meal with chips & salad or brown rice & salad for an extra charge.", "price": 18.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Lemon Garlic Herb", "description": "Fish fillets done with garlic herb spice", "price": 14.99, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Small Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken and homemade tandoori mayonnaise and garlic sauce", "price": 22.80, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Mixture Platter", "description": "Mixture of Tacos, Calamari, Sliders, Fried Fish & Chips - Perfect option for 2 people to share.", "price": 75.00, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Special Paneer Wrap", "description": "Grilled paneer, onions, peppers, and a tangy chutney, wrapped in a soft tortilla.", "price": 19.99, "category": "most-ordered", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Calamari Chips", "description": "Crispy beer-battered fish with golden fries", "price": 10.40, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+
+        # Desserts
+        {"id": str(uuid.uuid4()), "name": "Gulab Jamun", "description": "Deep-fried milk and flour dumplings soaked in a sweet sugar syrup, often infused with cardamom and rose water.", "price": 7.00, "category": "desserts", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1666190094721-033f03c24350?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Gulab Jamun with Ice Cream", "description": "Soft, syrup-soaked dumplings paired with creamy vanilla ice cream, garnished with slivers of pistachio and almond.", "price": 10.50, "category": "desserts", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1666190094721-033f03c24350?w=400"},
+
+        # Snack Packs
+        {"id": str(uuid.uuid4()), "name": "Large Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken snack pack and homemade tandoori mayonnaise and garlic sauce", "price": 33.50, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Junior Tandoori Snack Pack", "description": "Tandoori-seasoned meat atop crispy fries, drizzled with creamy and tangy sauces.", "price": 17.99, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Small Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken and homemade tandoori mayonnaise and garlic sauce", "price": 22.80, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+
+        # Fish & Chips
+        {"id": str(uuid.uuid4()), "name": "Tandoori Fish Chips and Salad", "description": "Grilled tandoori-seasoned fish fillet with crispy golden fries and a fresh mixed greens salad with red onions and cucumber.", "price": 22.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Moroccan Fish Chips and Salad", "description": "Seasoned fish fillet paired with crispy fries and a fresh garden salad with mixed greens, cucumber, and red onion.", "price": 21.90, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Moroccan Fish & Chips", "description": "Moroccan spices grilled fish served with hot chips and lemon wedge", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Lemon Herb Fish Chips and Salad", "description": "Grilled fish fillet with a lemon herb seasoning, served with crispy fries and a fresh salad of mixed greens, cucumber, and red onion.", "price": 21.90, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Crumbed Prawns Meal (5 prawns)", "description": "Golden crumbed prawns served with crispy fries, fresh greens, and a side of creamy dipping sauce.", "price": 23.00, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Sweet Chilli Prawn Skewers Meal", "description": "Four grilled prawns with sweet chilli sauce served with house salad and chips", "price": 23.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tandoori Fish & Chips", "description": "Grilled tandoori-spiced fish fillet with crispy golden fries, garnished with fresh herbs, pickled onion and served with a lemon wedge.", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Lemon Herb Fish & Chips", "description": "Grilled lemon herb spiced fish served with hot chips and lemon", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+
+        # Bit of Indian
+        {"id": str(uuid.uuid4()), "name": "Chilli Chicken", "description": "Chicken fried and sautéed in spicy chili sauce, typically includes peppers and onions.", "price": 23.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Punjabi Chicken Noodles", "description": "Tender chicken pieces and stir-fried noodles mixed with bell peppers and garnished with chopped green onions.", "price": 21.90, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Special Chicken Wrap", "description": "Chicken taka tak wrap: Grilled chicken, lettuce, tomatoes, onions, and a tangy mint chutney in a soft tortilla.", "price": 22.00, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Special Paneer Wrap", "description": "Grilled paneer, onions, peppers, and a tangy chutney, wrapped in a soft tortilla.", "price": 19.99, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Paneer Pakora", "description": "Crispy, golden-brown paneer cubes fried in a spiced batter, garnished with fresh cilantro, served with tangy green chutney and pickled onions.", "price": 22.90, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Amritsari Fried Fish", "description": "Crispy fried fish marinated in Indian spices, garnished with cilantro, served with pickled onions and green chutney.", "price": 28.50, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Cheese Chilli", "description": "Fried cheese cubes typically tossed in a spicy chili sauce.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Bhel Puri", "description": "A mixture of puffed rice, potatoes, onions, and assorted chutneys, offering a spicy and tangy flavor.", "price": 15.00, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Achaari Chicken", "description": "Tender chicken pieces in a tangy, spiced curry sauce, garnished with fresh cilantro and julienned ginger.", "price": 26.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chicken Pakora", "description": "Crispy fried chicken pieces seasoned with Indian spices, garnished with cilantro. Served with tangy pickled onions and a side of green chutney.", "price": 26.50, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Achari Soya Chaap", "description": "Tender soya chaap pieces in a rich, spiced tomato gravy, garnished with fresh cilantro.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Paneer Achaari", "description": "Tangy paneer cubes in a spiced pickling sauce, garnished with fresh cilantro.", "price": 25.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Soya Chaap Wrap", "description": "Marinated soya chaap with fresh vegetables, wrapped in a soft flatbread and drizzled with a green chutney.", "price": 20.99, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Soy Malai Chaap", "description": "Tender pieces of soy chaap in a creamy and aromatic malai sauce, garnished with fresh herbs.", "price": 22.90, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Creamy Mushroom Chicken", "description": "Tender chicken breasts in a rich, creamy mushroom sauce, garnished with fresh parsley.", "price": 25.99, "category": "indian", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Crispy Soya Chaap Tacos", "description": "Crunchy taco shells filled with marinated soya chaap, fresh vegetables, and a zesty sauce, blending Indian flavors with a taco twist.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Punjabi Noodle Tikki Burger", "description": "A spiced patty topped with crispy noodles, fresh lettuce, cucumber slices, and a hint of creamy sauce, all nestled in a sesame seed bun.", "price": 19.90, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Punjabi Veg Noodles", "description": "Stir-fried noodles with bell peppers, green onions, and Indian spices.", "price": 20.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chilli Lime Potatoes", "description": "Crispy potatoes typically seasoned with a blend of chili and lime, offering a tangy and spicy flavor profile.", "price": 20.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Veg Manchurian", "description": "Vegetable dumplings in a savory sauce, garnished with chopped scallions, offering a fusion of flavors.", "price": 23.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Egg Bhurji", "description": "Spiced scrambled eggs with onions, tomatoes, and herbs.", "price": 24.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Paneer Bhurji", "description": "Crumbled paneer cooked with spices, tomatoes, onions, and herbs, offering a savory and aromatic blend.", "price": 24.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tawa Roti", "description": "Soft, unleavened whole wheat flatbread, traditionally cooked on a griddle, perfect for pairing with various dishes.", "price": 3.50, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Paneer Taka Tak", "description": "Paneer cubes sautéed with onion capsicum and tossed in homemade chilli sauce", "price": 23.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chicken Taka Tak", "description": "Marinated chicken breast fillets sautéed with onion capsicum and tossed in homemade chilli sauce", "price": 24.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
+
+        # Tacos (set of 3)
+        {"id": str(uuid.uuid4()), "name": "Chicken Tacos (3 tacos)", "description": "Perfectly spiced up chicken with tangy slaw and salsa", "price": 19.50, "category": "tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
+
+        # Tandoori Tacos (set of 3)
+        {"id": str(uuid.uuid4()), "name": "Tandoori Paneer Tacos (3 tacos)", "description": "Vegetarian. If you are a paneer lover this is for you", "price": 22.50, "category": "tandoori-tacos", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Crispy Soya Chaap Tacos", "description": "Crispy soya chaap marinated with Indian spices, served in a taco shell, typically includes lettuce, onions, and a zesty sauce.", "price": 18.00, "category": "tandoori-tacos", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tandoori Chicken Tacos (3 tacos)", "description": "Why not try some Indian flavour in taco's", "price": 19.80, "category": "tandoori-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tandoori Fish Tacos (3 tacos)", "description": "Little bit Indian flavoured taco's", "price": 19.80, "category": "tandoori-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
+
+        # Southern Tacos (set of 3)
+        {"id": str(uuid.uuid4()), "name": "Southern Style Crispy Prawn Tacos", "description": "Crispy prawns with fresh cilantro and tangy slaw, wrapped in soft tortillas.", "price": 22.50, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Chicken (3 tacos)", "description": "Crispy fried chicken topped with fresh pico de gallo, drizzled with spicy sauce, and garnished with cilantro on soft tortillas.", "price": 20.90, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Fish (3 tacos)", "description": "Southern style fried tacos served with salsa", "price": 20.90, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
+
+        # Sharing Platter
+        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari Chips and Salad", "description": "Lightly fried salt and pepper calamari with seasoned chips and mixed salad, served with tartare sauce and a lemon wedge.", "price": 23.50, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Platter for 3", "description": "A variety platter featuring mini burgers, crispy fried chicken strips, breaded fish sticks, and soft tacos topped with diced tomatoes, cilantro, and a drizzle of sauce.", "price": 112.00, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Mixture of Tacos, Calamari, Sliders, Fried Fish & Chips", "description": "Perfect option for 2 people to share.", "price": 75.00, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari", "description": "Make meal with chips & salad or brown rice & salad for an extra charge.", "price": 18.50, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+
+        # Burgers
+        {"id": str(uuid.uuid4()), "name": "Southern Chicken Burger", "description": "Give it a go to this, you won't regret", "price": 20.50, "category": "burgers", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Fish Burger", "description": "Crispy fried fish fillet topped with cheddar cheese, fresh cilantro, and tangy coleslaw, all nestled in a soft bun.", "price": 20.00, "category": "burgers", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
+
+        # Kid's
+        {"id": str(uuid.uuid4()), "name": "Calamari Chips", "description": "Crispy beer-battered fish with golden fries", "price": 10.40, "category": "kids", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Nuggets & Chips", "description": "Chicken nuggets typically served with crispy chips.", "price": 10.40, "category": "kids", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400"},
+
         # Sides
-        {"id": str(uuid.uuid4()), "name": "Masala Fries", "description": "Crispy fries dusted with chaat masala and served with mint chutney", "price": 7.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Samosa Bites", "description": "Mini samosas with tamarind and mint dipping sauces", "price": 8.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Guacamole & Chips", "description": "Fresh house-made guacamole with crispy tortilla chips", "price": 9.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1615870216519-2f9fa575fa5c?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Elote (Mexican Corn)", "description": "Grilled corn with lime, chili, cotija cheese, and mayo", "price": 6.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400"},
-        
-        # Drinks
-        {"id": str(uuid.uuid4()), "name": "Mango Lassi", "description": "Creamy yogurt-based mango drink", "price": 5.50, "category": "drinks", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626201850129-a96cf52c4833?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Horchata", "description": "Traditional Mexican rice milk with cinnamon", "price": 5.00, "category": "drinks", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Masala Chai", "description": "Spiced Indian tea with milk", "price": 4.50, "category": "drinks", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Hot Salsa Loaded Chips", "description": "Crispy chips topped with hot salsa, jalapeños, spring onions, and corn relish.", "price": 13.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Water", "description": "Clear, refreshing bottled water.", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Panko Calamari Ring", "description": "Crispy panko-breaded calamari rings served with a side of fresh lemon wedges and garnished with herbs.", "price": 2.70, "category": "sides", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Garlic Aioli Sauce", "description": "A creamy, mayo-based dipping sauce typically featuring roasted garlic.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chipotle Mayo Sauce", "description": "Housemade chipotle mayo sauce, typically includes a blend of smoky chipotle peppers and creamy mayonnaise for a slightly spicy kick.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Mint Chutney", "description": "Typically includes fresh mint leaves, coriander leaves, ginger, and garlic.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Greek Pitta Bread", "description": "Soft Greek pitta bread, typically enjoyed as an accompaniment, often paired with ingredients like feta cheese, olives, and a drizzle of olive oil.", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Large Chips", "description": "House-cut fries typically seasoned with a special deluxe seasoning blend.", "price": 15.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Family Chips", "description": "Hand-cut potato chips, typically seasoned with sea salt and spices, offering a crispy texture suitable for sharing.", "price": 21.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Southern Crumbed Prawn", "description": "Crispy, golden-brown shrimp coated in a Southern-style crumb, garnished with fresh parsley.", "price": 3.90, "category": "sides", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Papadum", "description": "Crispy Indian appetizer made from lentil flour and spices, perfect for snacking", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Sweet Chilli Mayo", "description": "Creamy mayonnaise blended with sweet and spicy chili, ideal for adding a touch of zest to various dishes.", "price": 3.00, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tandoori Mayo", "description": "A creamy mayonnaise infused with tandoori spices, offering a subtle blend of tangy and aromatic flavors, ideal as a dipping sauce.", "price": 3.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Chips", "description": "Crispy, golden potato fries lightly seasoned with salt.", "price": 8.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Soft Drinks", "description": "Refreshing carbonated beverages", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400"},
+
+        # Grilled Fish
+        {"id": str(uuid.uuid4()), "name": "Moroccan", "description": "Fish done with Moroccan spice", "price": 17.50, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Plain Fish Fillet", "description": "Simple grilled fish fillet", "price": 11.00, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Lemon Garlic Herb", "description": "Fish fillets done with garlic herb spice", "price": 14.99, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
+        {"id": str(uuid.uuid4()), "name": "Tandoori", "description": "Tandoori marinated fish fillet", "price": 15.99, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
     ]
     
     await db.menu_items.insert_many(menu_items)
     
-    # Seed reviews
-    reviews = [
-        {"id": str(uuid.uuid4()), "author": "Sarah M.", "rating": 5, "text": "Every bite was a flavour explosion! The Tandoori Chicken Tacos are absolutely divine. Best fusion food in Melbourne!", "date": "2024-11-15"},
-        {"id": str(uuid.uuid4()), "author": "James T.", "rating": 5, "text": "Great food quality and exotic flavours. The Masala Fries are addictive! Will definitely be coming back.", "date": "2024-11-10"},
-        {"id": str(uuid.uuid4()), "author": "Priya K.", "rating": 5, "text": "Outstanding service and attention to detail. The fusion of Indian and Mexican cuisines is done perfectly.", "date": "2024-11-05"},
-        {"id": str(uuid.uuid4()), "author": "Michael R.", "rating": 5, "text": "Hidden gem in Clyde North! The Butter Chicken Bowl is restaurant quality. Highly recommend!", "date": "2024-10-28"},
-        {"id": str(uuid.uuid4()), "author": "Emma L.", "rating": 5, "text": "Family loved everything we ordered. The kids couldn't stop eating the Southern Chicken Tacos!", "date": "2024-10-20"},
-    ]
+    # Seed reviews if not exist
+    reviews_count = await db.reviews.count_documents({})
+    if reviews_count == 0:
+        reviews = [
+            {"id": str(uuid.uuid4()), "author": "Sarah M.", "rating": 5, "text": "Every bite was a flavour explosion! The Tandoori Chicken Tacos are absolutely divine. Best fusion food in Melbourne!", "date": "2024-11-15"},
+            {"id": str(uuid.uuid4()), "author": "James T.", "rating": 5, "text": "Great food quality and exotic flavours. The Masala Fries are addictive! Will definitely be coming back.", "date": "2024-11-10"},
+            {"id": str(uuid.uuid4()), "author": "Priya K.", "rating": 5, "text": "Outstanding service and attention to detail. The fusion of Indian and Mexican cuisines is done perfectly.", "date": "2024-11-05"},
+            {"id": str(uuid.uuid4()), "author": "Michael R.", "rating": 5, "text": "Hidden gem in Clyde North! The Butter Chicken Bowl is restaurant quality. Highly recommend!", "date": "2024-10-28"},
+            {"id": str(uuid.uuid4()), "author": "Emma L.", "rating": 5, "text": "Family loved everything we ordered. The kids couldn't stop eating the Southern Chicken Tacos!", "date": "2024-10-20"},
+        ]
+        await db.reviews.insert_many(reviews)
     
-    await db.reviews.insert_many(reviews)
-    
-    return {"message": "Data seeded successfully"}
+    return {"message": "Menu updated successfully"}
 
 # Include the router in the main app
 app.include_router(api_router)

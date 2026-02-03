@@ -1,34 +1,224 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Tacos & Things - Custom Styles */
+
+/* Organic image shapes */
+.organic-shape {
+    border-radius: 40px 20px 40px 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
+.organic-shape-alt {
+    border-radius: 20px 40px 20px 40px;
+}
+
+/* Hero section background pattern */
+.hero-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23E07A5F' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Card hover effects */
+.menu-card {
+    transition: all 0.3s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(224, 122, 95, 0.15);
+}
+
+/* Floating cart button animation */
+.cart-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
     }
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Section fade in animation */
+.section-fade {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
 }
 
-.App-link {
-    color: #61dafb;
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-@keyframes App-logo-spin {
+/* Stagger children animation */
+.stagger-children > * {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Navbar shadow on scroll */
+.navbar-scrolled {
+    background-color: rgba(244, 241, 222, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(61, 64, 91, 0.1);
+}
+
+/* Image overlay gradient */
+.image-overlay {
+    background: linear-gradient(180deg, transparent 0%, rgba(61, 64, 91, 0.8) 100%);
+}
+
+/* Button glow effect */
+.btn-glow {
+    box-shadow: 0 0 20px rgba(224, 122, 95, 0.3);
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(224, 122, 95, 0.5);
+}
+
+/* Review card */
+.review-card {
+    background: white;
+    border: 1px solid rgba(242, 204, 143, 0.3);
+}
+
+/* Tab active indicator */
+.tab-active {
+    position: relative;
+}
+
+.tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #E07A5F;
+    border-radius: 2px;
+}
+
+/* Gallery image hover */
+.gallery-item {
+    overflow: hidden;
+}
+
+.gallery-item img {
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Footer wave */
+.footer-wave {
+    position: relative;
+}
+
+.footer-wave::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100'%3E%3Cpath fill='%233D405B' d='M0,50 C360,100 1080,0 1440,50 L1440,100 L0,100 Z'%3E%3C/path%3E%3C/svg%3E") no-repeat center;
+    background-size: cover;
+}
+
+/* Custom checkbox */
+input[type="checkbox"] {
+    accent-color: #E07A5F;
+}
+
+/* Badge styles */
+.badge-spicy {
+    background: linear-gradient(135deg, #E63946, #E07A5F);
+}
+
+.badge-veg {
+    background: linear-gradient(135deg, #81B29A, #4a9d7e);
+}
+
+.badge-popular {
+    background: linear-gradient(135deg, #F2CC8F, #e6b84d);
+}
+
+/* Mobile menu animation */
+.mobile-menu-enter {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
     from {
-        transform: rotate(0deg);
+        opacity: 0;
+        transform: translateY(-10px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cart item animation */
+.cart-item-enter {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid rgba(224, 122, 95, 0.2);
+    border-top-color: #E07A5F;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Focus styles */
+input:focus, textarea:focus, button:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #E07A5F;
+}
+
+/* Smooth image loading */
+img {
+    transition: opacity 0.3s ease;
+}
+
+img[loading] {
+    opacity: 0;
+}
+
+img:not([loading]) {
+    opacity: 1;
 }

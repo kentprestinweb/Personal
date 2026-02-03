@@ -88,19 +88,25 @@ const Navbar = () => {
               <span className="font-sans text-sm font-medium">Call Now</span>
             </a>
 
-            {/* Cart Button */}
-            <Button
-              onClick={() => setIsCartOpen(true)}
-              className="relative bg-saffron-blaze text-white px-4 py-2 rounded-full hover:bg-chili-red transition-all"
-              data-testid="cart-button">
-
-              <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 &&
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-chili-red text-white text-xs rounded-full flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              }
-            </Button>
+            {/* Order Buttons */}
+            <a
+              href={UBEREATS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-2 bg-[#06C167] text-white px-4 py-2 rounded-full font-medium hover:bg-[#05a857] transition-all text-sm"
+              data-testid="navbar-ubereats-btn"
+            >
+              Uber Eats
+            </a>
+            <a
+              href={DOORDASH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-2 bg-[#FF3008] text-white px-4 py-2 rounded-full font-medium hover:bg-[#e62b07] transition-all text-sm"
+              data-testid="navbar-doordash-btn"
+            >
+              DoorDash
+            </a>
 
             {/* Mobile Menu Button */}
             <button
@@ -137,11 +143,29 @@ const Navbar = () => {
             )}
               <a
               href="tel:0439406042"
-              className="flex items-center gap-2 py-2 px-3 rounded-lg bg-saffron-blaze text-white font-medium"
+              className="flex items-center gap-2 py-2 px-3 rounded-lg bg-maize-gold/20 text-deep-char font-medium"
               data-testid="mobile-call-btn">
 
                 <Phone className="w-4 h-4" />
                 Call 0439 406 042
+              </a>
+              <a
+                href={UBEREATS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#06C167] text-white font-medium"
+                data-testid="mobile-ubereats-btn"
+              >
+                Order on Uber Eats
+              </a>
+              <a
+                href={DOORDASH_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#FF3008] text-white font-medium"
+                data-testid="mobile-doordash-btn"
+              >
+                Order on DoorDash
               </a>
             </div>
           </div>

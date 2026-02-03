@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBag, Phone } from "lucide-react";
-import { useCart } from "../App";
+import { Menu, X, Phone } from "lucide-react";
 import { Button } from "./ui/button";
+
+const UBEREATS_URL = "https://www.ubereats.com/au/store/tacos-%26-things/dPoR8c_FQVeNNV1SyGY3Ow?diningMode=PICKUP&utm_campaign=CM2508147-search-free-nonbrand-google-pas_e_all_acq_Global&utm_medium=search-free-nonbrand&utm_source=google-pas";
+const DOORDASH_URL = "https://www.doordash.com/store/taco's-&-things-clyde-north-33378679/58290346/?pickup=true&utm_campaign=gpa";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { cartCount, setIsCartOpen } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {

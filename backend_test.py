@@ -171,7 +171,8 @@ class RestaurantAPITester:
         if self.failed_tests:
             print(f"\n❌ Failed Tests:")
             for test in self.failed_tests:
-                print(f"   - {test['test']}: {test.get('error', f'Status {test.get(\"actual\")} != {test.get(\"expected\")}')}")
+                error_msg = test.get('error', f"Status {test.get('actual')} != {test.get('expected')}")
+                print(f"   - {test['test']}: {error_msg}")
 
         return self.tests_passed == self.tests_run
 

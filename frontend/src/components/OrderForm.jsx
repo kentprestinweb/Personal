@@ -186,10 +186,10 @@ const OrderForm = () => {
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dine-in">Dine-in</SelectItem>
-                    <SelectItem value="takeaway">Takeaway</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
+                  <SelectContent position="popper" sideOffset={5} className="z-[9999]">
+                    <SelectItem value="dine-in" data-testid="order-type-dinein">Dine-in</SelectItem>
+                    <SelectItem value="takeaway" data-testid="order-type-takeaway">Takeaway</SelectItem>
+                    <SelectItem value="delivery" data-testid="order-type-delivery">Delivery</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

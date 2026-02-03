@@ -127,6 +127,20 @@ async def get_menu_by_category(category: str):
     items = await db.menu_items.find({"category": category}, {"_id": 0}).to_list(100)
     return items
 
+class UpdateImageRequest(BaseModel):
+    name: str
+    image_url: str
+
+@api_router.put("/menu/update-image")
+async def update_menu_image(request: UpdateImageRequest):
+    result = await db.menu_items.update_many(
+        {"name": request.name},
+        {"$set": {"image_url": request.image_url}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return {"message": f"Updated {result.modified_count} item(s)", "name": request.name}
+
 @api_router.post("/menu", response_model=MenuItem)
 async def create_menu_item(item: MenuItemCreate):
     menu_item = MenuItem(**item.model_dump())

@@ -1,20 +1,11 @@
 import { useState } from "react";
-import { Flame, Leaf, Star, Plus } from "lucide-react";
-import { useCart } from "../App";
-import { Button } from "./ui/button";
+import { Flame, Leaf, Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { toast } from "sonner";
+
+const UBEREATS_URL = "https://www.ubereats.com/au/store/tacos-%26-things/dPoR8c_FQVeNNV1SyGY3Ow?diningMode=PICKUP&utm_campaign=CM2508147-search-free-nonbrand-google-pas_e_all_acq_Global&utm_medium=search-free-nonbrand&utm_source=google-pas";
+const DOORDASH_URL = "https://www.doordash.com/store/taco's-&-things-clyde-north-33378679/58290346/?pickup=true&utm_campaign=gpa";
 
 const MenuItemCard = ({ item }) => {
-  const { addToCart } = useCart();
-
-  const handleAddToCart = () => {
-    addToCart(item);
-    toast.success(`${item.name} added to cart!`, {
-      description: `A$${item.price.toFixed(2)}`,
-    });
-  };
-
   return (
     <div
       className="menu-card bg-white rounded-2xl overflow-hidden shadow-md border border-maize-gold/20 group"
@@ -60,14 +51,6 @@ const MenuItemCard = ({ item }) => {
         <p className="font-sans text-sm text-deep-char/60 mb-4 line-clamp-2">
           {item.description}
         </p>
-        <Button
-          onClick={handleAddToCart}
-          className="w-full bg-deep-char text-white rounded-full py-3 font-sans font-medium hover:bg-saffron-blaze transition-colors flex items-center justify-center gap-2"
-          data-testid={`add-to-cart-${item.id}`}
-        >
-          <Plus className="w-4 h-4" />
-          Add to Order
-        </Button>
       </div>
     </div>
   );

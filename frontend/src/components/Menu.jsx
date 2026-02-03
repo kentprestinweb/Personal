@@ -136,6 +136,38 @@ const Menu = ({ items }) => {
           ))}
           </div>
         </Tabs>
+
+        {/* Order CTA */}
+        <div className="mt-16 text-center">
+          <h3 className="font-serif text-2xl text-deep-char mb-4">Ready to Order?</h3>
+          <p className="font-sans text-deep-char/70 mb-6">Order now for pickup or delivery through our partners</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a
+              href={UBEREATS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-[#06C167] text-white px-8 py-4 rounded-full font-bold hover:bg-[#05a857] transition-all duration-300 hover:scale-105 shadow-lg"
+              data-testid="menu-ubereats-btn"
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4a9.6 9.6 0 110 19.2 9.6 9.6 0 010-19.2zm0 3.6a6 6 0 100 12 6 6 0 000-12zm0 2.4a3.6 3.6 0 110 7.2 3.6 3.6 0 010-7.2z"/>
+              </svg>
+              Order on Uber Eats
+            </a>
+            <a
+              href={DOORDASH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-[#FF3008] text-white px-8 py-4 rounded-full font-bold hover:bg-[#e62b07] transition-all duration-300 hover:scale-105 shadow-lg"
+              data-testid="menu-doordash-btn"
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.071 8.409a6.09 6.09 0 00-5.396-3.228H.584A.589.589 0 00.17 6.184L3.894 9.93a1.752 1.752 0 001.242.516h12.049a1.554 1.554 0 11.031 3.108H8.91a.589.589 0 00-.415 1.003l3.725 3.747a1.75 1.75 0 001.242.516h3.757c4.887 0 8.584-5.225 5.852-10.41z"/>
+              </svg>
+              Order on DoorDash
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

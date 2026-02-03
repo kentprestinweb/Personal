@@ -28,7 +28,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <h3 className="text-3xl font-serif text-cream-paper mb-4">
-              Tacos <span className="text-saffron-blaze">&</span> Things
+              Taco's <span className="text-saffron-blaze">&</span> Things
             </h3>
             <p className="font-sans text-cream-paper/70 mb-6 leading-relaxed">
               Where Mumbai meets Mexico City. Experience the bold fusion of
@@ -157,7 +157,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-cream-paper/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="font-sans text-sm text-cream-paper/50">
-              © {currentYear} Tacos & Things. All rights reserved.
+              © {currentYear} Taco's & Things. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a

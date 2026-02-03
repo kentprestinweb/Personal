@@ -42,6 +42,7 @@ const Hero = () => {
               Meets{" "}
               <span className="text-guacamole-green">Mexico City</span>
             </h1>
+            <p className="font-serif text-2xl text-deep-char/80 -mt-4 mb-4">Taco's & Things</p>
 
             {/* Subheading */}
             <p className="text-lg md:text-xl text-deep-char/70 font-sans leading-relaxed mb-8 max-w-lg">

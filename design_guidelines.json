@@ -1,0 +1,99 @@
+{
+  "identity": {
+    "name": "Tacos & Things",
+    "vibe": "Indian-Mexican Fusion, Warm, Family-Friendly, Vibrant",
+    "mission": "To serve bold flavors where Mumbai meets Mexico City in Clyde North."
+  },
+  "typography": {
+    "primary_font": "Yeseva One",
+    "secondary_font": "DM Sans",
+    "font_import_url": "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&family=Yeseva+One&display=swap",
+    "usage": {
+      "h1": "font-serif text-5xl md:text-7xl tracking-tight text-deep-char",
+      "h2": "font-serif text-4xl md:text-5xl text-deep-char mb-6",
+      "h3": "font-serif text-2xl md:text-3xl text-saffron-blaze",
+      "body": "font-sans text-base md:text-lg text-deep-char/80 leading-relaxed",
+      "cta": "font-sans font-bold uppercase tracking-wider"
+    }
+  },
+  "colors": {
+    "palette": {
+      "saffron-blaze": "#E07A5F",
+      "maize-gold": "#F2CC8F",
+      "deep-char": "#3D405B",
+      "cream-paper": "#F4F1DE",
+      "chili-red": "#E63946",
+      "guacamole-green": "#81B29A"
+    },
+    "backgrounds": {
+      "main": "bg-[#F4F1DE]",
+      "card": "bg-white",
+      "footer": "bg-[#3D405B]",
+      "accent": "bg-[#F2CC8F]"
+    },
+    "text": {
+      "primary": "text-[#3D405B]",
+      "secondary": "text-[#3D405B]/80",
+      "accent": "text-[#E07A5F]",
+      "inverse": "text-[#F4F1DE]"
+    }
+  },
+  "layout_strategies": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "section_spacing": "py-16 md:py-24",
+    "grid_system": "grid grid-cols-1 md:grid-cols-12 gap-8",
+    "bento_grid": {
+      "wrapper": "grid grid-cols-1 md:grid-cols-3 gap-6",
+      "hero_item": "md:col-span-2 md:row-span-2 rounded-3xl overflow-hidden relative min-h-[400px]",
+      "standard_item": "md:col-span-1 rounded-3xl overflow-hidden relative min-h-[200px]"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#E07A5F] text-white px-8 py-4 rounded-full font-bold hover:bg-[#E63946] transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl",
+      "secondary": "bg-transparent border-2 border-[#3D405B] text-[#3D405B] px-8 py-4 rounded-full font-bold hover:bg-[#3D405B] hover:text-white transition-all duration-300",
+      "icon": "p-3 rounded-full bg-[#F2CC8F]/20 text-[#E07A5F] hover:bg-[#E07A5F] hover:text-white transition-colors"
+    },
+    "cards": {
+      "menu_item": "bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-[#F2CC8F]/30 group",
+      "feature": "bg-[#F2CC8F]/10 rounded-3xl p-8 border border-[#F2CC8F] relative overflow-hidden"
+    },
+    "inputs": {
+      "default": "bg-white border-2 border-[#F2CC8F] rounded-xl px-4 py-3 focus:outline-none focus:border-[#E07A5F] focus:ring-2 focus:ring-[#E07A5F]/20 transition-all"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Use a subtle grain overlay on the main background to give it a 'paper' feel.",
+    "shapes": "Use organic, blob-like border-radius for images (e.g., 'rounded-[40px_20px_40px_20px]') to break the grid.",
+    "shadows": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+    "gradients": "bg-gradient-to-br from-[#F4F1DE] to-[#F2CC8F]/30"
+  },
+  "image_urls": {
+    "hero_main": "https://images.unsplash.com/photo-1648437595587-e6a8b0cdf1f9?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "fusion_dish": "https://images.unsplash.com/photo-1764337581293-445f9ddda56e?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "indian_dish": "https://images.unsplash.com/photo-1585039257797-fc9df37b8b76?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "interior_vibe": "https://images.unsplash.com/photo-1714890210863-f22366ad2a44?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "about_us_bg": "https://images.unsplash.com/photo-1634212926471-7abb22bfeb66?crop=entropy&cs=srgb&fm=jpg&q=85"
+  },
+  "motion": {
+    "hover_lift": "hover:-translate-y-1 transition-transform duration-300",
+    "fade_in": "animate-in fade-in duration-700 slide-in-from-bottom-4",
+    "stagger_delay": "delay-100"
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add the Google Fonts import to index.css immediately.",
+    "2. CONFIGURE TAILWIND: Update tailwind.config.js with the custom colors (saffron-blaze, maize-gold, etc.) and fonts (Yeseva One, DM Sans).",
+    "3. BUILD LAYOUT: Use the 'cream-paper' color as the global background. Do not use pure white for the page background.",
+    "4. HERO SECTION: Create a split layout. Left: Big bold typography 'Tacos & Things'. Right: The Hero Image masked with a large organic rounded shape.",
+    "5. MENU: Use a Tabbed Interface (Tacos | Curries | Fusion | Sides). Inside each tab, use a grid of cards.",
+    "6. ORDERING: Implement a floating 'Cart' button that is always visible on mobile.",
+    "7. FOOTER: Make it dark (deep-char) with maize-gold text for contrast.",
+    "8. TESTIDS: Ensure every button and input has a data-testid attribute."
+  ],
+  "universal_guidelines": [
+    "Avoid generic AI aesthetics. No 'Inter' font for headings.",
+    "Use generous padding (py-20) between sections.",
+    "Ensure text contrast is high (use deep-char for text, not gray-500).",
+    "Make the site feel 'warm' and 'spicy' through color usage."
+  ]
+}

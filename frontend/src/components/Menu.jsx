@@ -136,18 +136,6 @@ const Menu = ({ items }) => {
           {/* Menu Items Grid */}
           {categories.map((category) => (
             <TabsContent key={category.id} value={category.id}>
-              {/* Category Description */}
-              {category.id === "most-ordered" && (
-                <p className="text-center text-deep-char/60 mb-8 font-sans">
-                  The most commonly ordered items and dishes from this store
-                </p>
-              )}
-              {category.id === "sharing" && (
-                <p className="text-center text-deep-char/60 mb-8 font-sans">
-                  Perfect option for 2+ people to share
-                </p>
-              )}
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
                 {items
                   .filter((item) => item.category === category.id)

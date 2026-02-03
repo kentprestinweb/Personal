@@ -135,7 +135,7 @@ const Menu = ({ items }) => {
 
           {/* Menu Items Grid */}
           {categories.map((category) => (
-            <TabsContent key={category.id} value={category.id}>
+            <TabsContent key={category.id} value={category.id} className="mt-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
                 {items
                   .filter((item) => item.category === category.id)

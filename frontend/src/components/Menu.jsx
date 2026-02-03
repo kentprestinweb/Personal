@@ -11,7 +11,7 @@ const MenuItemCard = ({ item }) => {
   const handleAddToCart = () => {
     addToCart(item);
     toast.success(`${item.name} added to cart!`, {
-      description: `$${item.price.toFixed(2)}`,
+      description: `A$${item.price.toFixed(2)}`,
     });
   };
 
@@ -50,11 +50,11 @@ const MenuItemCard = ({ item }) => {
       {/* Content */}
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-serif text-xl text-deep-char group-hover:text-saffron-blaze transition-colors">
+          <h3 className="font-serif text-xl text-deep-char group-hover:text-saffron-blaze transition-colors pr-2">
             {item.name}
           </h3>
-          <span className="font-sans text-xl font-bold text-saffron-blaze">
-            ${item.price.toFixed(2)}
+          <span className="font-sans text-xl font-bold text-saffron-blaze whitespace-nowrap">
+            A${item.price.toFixed(2)}
           </span>
         </div>
         <p className="font-sans text-sm text-deep-char/60 mb-4 line-clamp-2">
@@ -74,17 +74,23 @@ const MenuItemCard = ({ item }) => {
 };
 
 const Menu = ({ items }) => {
-  const [activeTab, setActiveTab] = useState("tacos");
+  const [activeTab, setActiveTab] = useState("most-ordered");
 
   const categories = [
+    { id: "most-ordered", name: "Most Ordered", emoji: "⭐" },
     { id: "tacos", name: "Tacos", emoji: "🌮" },
-    { id: "curries", name: "Curries", emoji: "🍛" },
-    { id: "fusion", name: "Fusion", emoji: "🔥" },
+    { id: "tandoori-tacos", name: "Tandoori Tacos", emoji: "🔥" },
+    { id: "southern-tacos", name: "Southern Tacos", emoji: "🍗" },
+    { id: "indian", name: "Bit of Indian", emoji: "🍛" },
+    { id: "fish-chips", name: "Fish & Chips", emoji: "🐟" },
+    { id: "grilled-fish", name: "Grilled Fish", emoji: "🍽️" },
+    { id: "burgers", name: "Burgers", emoji: "🍔" },
+    { id: "sharing", name: "Sharing Platter", emoji: "🍱" },
+    { id: "snack-packs", name: "Snack Packs", emoji: "📦" },
+    { id: "kids", name: "Kid's", emoji: "👶" },
     { id: "sides", name: "Sides", emoji: "🍟" },
-    { id: "drinks", name: "Drinks", emoji: "🥤" },
+    { id: "desserts", name: "Desserts", emoji: "🍨" },
   ];
-
-  const filteredItems = items.filter((item) => item.category === activeTab);
 
   return (
     <section
@@ -102,7 +108,7 @@ const Menu = ({ items }) => {
             Explore Our Fusion Delights
           </h2>
           <p className="font-sans text-lg text-deep-char/70 max-w-2xl mx-auto">
-            From signature tandoori tacos to exotic curries, discover dishes that
+            From signature tandoori tacos to exotic Indian dishes, discover flavours that
             blend the best of two culinary worlds.
           </p>
         </div>
@@ -114,14 +120,14 @@ const Menu = ({ items }) => {
               <TabsTrigger
                 key={category.id}
                 value={category.id}
-                className={`px-6 py-3 rounded-full font-sans font-medium transition-all ${
+                className={`px-4 py-2 rounded-full font-sans font-medium transition-all text-sm ${
                   activeTab === category.id
                     ? "bg-saffron-blaze text-white shadow-lg"
                     : "bg-white text-deep-char hover:bg-maize-gold/30"
                 }`}
                 data-testid={`menu-tab-${category.id}`}
               >
-                <span className="mr-2">{category.emoji}</span>
+                <span className="mr-1">{category.emoji}</span>
                 {category.name}
               </TabsTrigger>
             ))}
@@ -130,6 +136,18 @@ const Menu = ({ items }) => {
           {/* Menu Items Grid */}
           {categories.map((category) => (
             <TabsContent key={category.id} value={category.id}>
+              {/* Category Description */}
+              {category.id === "most-ordered" && (
+                <p className="text-center text-deep-char/60 mb-8 font-sans">
+                  The most commonly ordered items and dishes from this store
+                </p>
+              )}
+              {category.id === "sharing" && (
+                <p className="text-center text-deep-char/60 mb-8 font-sans">
+                  Perfect option for 2+ people to share
+                </p>
+              )}
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
                 {items
                   .filter((item) => item.category === category.id)

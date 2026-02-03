@@ -112,16 +112,21 @@ const HomePage = () => {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        // Seed data first
-        await axios.post(`${API}/seed`);
-        
         // Fetch menu and reviews
         const [menuRes, reviewsRes] = await Promise.all([
           axios.get(`${API}/menu`),
           axios.get(`${API}/reviews`),
         ]);
         
-        setMenuItems(menuRes.data);
+        // Only seed if no menu items exist
+        if (menuRes.data.length === 0) {
+          await axios.post(`${API}/seed`);
+          const newMenuRes = await axios.get(`${API}/menu`);
+          setMenuItems(newMenuRes.data);
+        } else {
+          setMenuItems(menuRes.data);
+        }
+        
         setReviews(reviewsRes.data);
       } catch (e) {
         console.error("Error initializing data:", e);

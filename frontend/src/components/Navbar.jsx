@@ -53,7 +53,7 @@ const Navbar = () => {
             data-testid="navbar-logo">
 
             <span className="md:text-3xl !font-serif !text-2xl text-deep-char">
-              Taco's & Things <span className="text-saffron-blaze">&</span> Things
+              Taco's <span className="text-saffron-blaze">&</span> Things
             </span>
           </a>
 

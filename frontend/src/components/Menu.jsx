@@ -133,7 +133,7 @@ const Menu = ({ items }) => {
             ))}
           </TabsList>
 
-          <div className="mt-12">
+          <div className="mt-16">
           {/* Menu Items Grid */}
           {categories.map((category) => (
             <TabsContent key={category.id} value={category.id}>

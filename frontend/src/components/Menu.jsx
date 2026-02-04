@@ -170,22 +170,6 @@ const Menu = ({ items }) => {
 
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Floating Category Indicator - Mobile/Tablet only */}
-          <div 
-            className={`
-              fixed z-50 lg:hidden
-              left-1/2 -translate-x-1/2
-              transition-all duration-300 ease-out
-              ${showIndicator ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-            `}
-            style={{ top: '80px' }}
-          >
-            <div className="bg-deep-char/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2">
-              <span className="text-lg">{activeCategory?.emoji}</span>
-              <span className="font-sans font-medium text-sm">{activeCategory?.name}</span>
-            </div>
-          </div>
-
           {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
           <div className="relative">
             {/* Left scroll button */}

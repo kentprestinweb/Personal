@@ -171,7 +171,7 @@ const Menu = ({ items }) => {
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
-          <div className="relative">
+          <div className="relative overflow-hidden">
             {/* Left scroll button */}
             <button
               onClick={() => scrollTabs('left')}

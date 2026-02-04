@@ -154,26 +154,66 @@ const Menu = ({ items }) => {
 
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Floating Category Indicator - Mobile/Tablet only */}
+          <div 
+            className={`
+              fixed top-20 left-1/2 -translate-x-1/2 z-50 lg:hidden
+              transition-all duration-300 ease-out
+              ${showIndicator ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
+            `}
+          >
+            <div className="bg-deep-char/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2">
+              <span className="text-lg">{activeCategory?.emoji}</span>
+              <span className="font-sans font-medium text-sm">{activeCategory?.name}</span>
+            </div>
+          </div>
+
           {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
           <div className="relative">
+            {/* Left scroll button */}
+            <button
+              onClick={() => scrollTabs('left')}
+              className={`
+                absolute left-0 top-1/2 -translate-y-1/2 z-30 lg:hidden
+                w-8 h-8 rounded-full bg-white shadow-lg border border-maize-gold/30
+                flex items-center justify-center
+                transition-all duration-200
+                ${canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+              `}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-4 h-4 text-deep-char" />
+            </button>
+
+            {/* Right scroll button */}
+            <button
+              onClick={() => scrollTabs('right')}
+              className={`
+                absolute right-0 top-1/2 -translate-y-1/2 z-30 lg:hidden
+                w-8 h-8 rounded-full bg-white shadow-lg border border-maize-gold/30
+                flex items-center justify-center
+                transition-all duration-200
+                ${canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+              `}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-4 h-4 text-deep-char" />
+            </button>
+
             {/* Gradient fade indicators for scroll */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream-paper to-transparent z-20 pointer-events-none lg:hidden" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-cream-paper to-transparent z-20 pointer-events-none lg:hidden" />
+            <div className={`absolute left-8 top-0 bottom-0 w-6 bg-gradient-to-r from-cream-paper to-transparent z-20 pointer-events-none lg:hidden transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+            <div className={`absolute right-8 top-0 bottom-0 w-6 bg-gradient-to-l from-cream-paper to-transparent z-20 pointer-events-none lg:hidden transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
             
             <TabsList 
+              ref={tabsRef}
               className="
                 flex gap-2 bg-transparent relative z-10 pb-4 mb-2
                 overflow-x-auto scrollbar-hide
                 snap-x snap-mandatory
-                -mx-4 px-4 lg:mx-0 lg:px-0
+                -mx-4 px-12 lg:mx-0 lg:px-0
                 lg:flex-wrap lg:justify-center lg:overflow-visible
-                touch-pan-x
+                horizontal-scroll-lock
               "
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
             >
               {categories.map((category) => (
                 <TabsTrigger

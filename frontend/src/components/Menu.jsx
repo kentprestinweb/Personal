@@ -210,12 +210,18 @@ const Menu = ({ items }) => {
               ref={tabsRef}
               className="
                 flex gap-2 bg-transparent relative z-10 pb-4 mb-2
-                overflow-x-auto scrollbar-hide
                 snap-x snap-mandatory
                 -mx-4 px-12 lg:mx-0 lg:px-0
                 lg:flex-wrap lg:justify-center lg:overflow-visible
-                horizontal-scroll-lock
               "
+              style={{
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                touchAction: 'pan-x',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
             >
               {categories.map((category) => (
                 <TabsTrigger

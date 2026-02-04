@@ -157,6 +157,68 @@ class MenuItemUpdate(BaseModel):
     is_popular: Optional[bool] = None
     is_sold_out: Optional[bool] = None
 
+# ----- Site Content Model -----
+class SiteContent(BaseModel):
+    # Hero Section
+    hero_headline: str = "Where Indian Spices Meet Mexican Soul"
+    hero_tagline: str = "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite."
+    hero_image: str = "/taco-truck-hero.png"
+    hero_uber_eats_url: str = "https://www.ubereats.com/au/store/tacos-%26-things/KdHs1234"
+    hero_doordash_url: str = "https://www.doordash.com/store/tacos-and-things-clyde-north-12345"
+    
+    # About Section
+    about_label: str = "Our Story"
+    about_headline: str = "A Flavourful Journey of Two Cultures"
+    about_text_1: str = "At Taco's & Things, we believe that the best flavours are born from unexpected combinations. Our culinary journey began with a simple idea: what if we brought together the aromatic spices of India with the vibrant, fresh flavours of Mexico?"
+    about_text_2: str = "From our signature Tandoori Paneer Tacos to our crispy Southern Chicken creations, every dish tells a story of two cultures coming together in perfect harmony. We use only the freshest ingredients and authentic spices to create dishes that will take your taste buds on an unforgettable adventure."
+    
+    # Gallery Section
+    gallery_label: str = "Gallery"
+    gallery_headline: str = "A Feast for the Eyes"
+    gallery_description: str = "Take a peek at our mouthwatering creations. Every dish is a work of art, crafted to delight both your eyes and taste buds."
+    gallery_images: List[str] = []
+    
+    # Contact Section
+    contact_label: str = "Visit Us"
+    contact_headline: str = "Come Say Hello"
+    contact_address: str = "Unit 3/47 Rainier Cres, Clyde North VIC 3978"
+    contact_phone: str = "0439 406 042"
+    contact_email: str = "hello@tacosandthings.com.au"
+    contact_hours: str = "Open daily from 5:00 PM"
+    contact_map_embed: str = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3146.5!2d145.35!3d-38.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDA2JzAwLjAiUyAxNDXCsDIxJzAwLjAiRQ!5e0!3m2!1sen!2sau!4v1234567890"
+    
+    # Footer Section  
+    footer_tagline: str = "Where Indian Spices Meet Mexican Soul"
+    footer_description: str = "Bringing you the best fusion cuisine in Clyde North. Fresh ingredients, bold flavors, unforgettable experiences."
+    
+    # Social Links
+    facebook_url: str = "https://www.facebook.com/p/Tacos-Things-61575431517600/"
+    
+class SiteContentUpdate(BaseModel):
+    hero_headline: Optional[str] = None
+    hero_tagline: Optional[str] = None
+    hero_image: Optional[str] = None
+    hero_uber_eats_url: Optional[str] = None
+    hero_doordash_url: Optional[str] = None
+    about_label: Optional[str] = None
+    about_headline: Optional[str] = None
+    about_text_1: Optional[str] = None
+    about_text_2: Optional[str] = None
+    gallery_label: Optional[str] = None
+    gallery_headline: Optional[str] = None
+    gallery_description: Optional[str] = None
+    gallery_images: Optional[List[str]] = None
+    contact_label: Optional[str] = None
+    contact_headline: Optional[str] = None
+    contact_address: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_hours: Optional[str] = None
+    contact_map_embed: Optional[str] = None
+    footer_tagline: Optional[str] = None
+    footer_description: Optional[str] = None
+    facebook_url: Optional[str] = None
+
 # ----- Routes -----
 
 @api_router.get("/")

@@ -46,15 +46,6 @@ const Footer = () => {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://www.instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-cream-paper/10 rounded-full flex items-center justify-center hover:bg-saffron-blaze transition-colors"
-                data-testid="footer-instagram"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
                 href="mailto:hello@tacosandthings.com.au"
                 className="w-10 h-10 bg-cream-paper/10 rounded-full flex items-center justify-center hover:bg-saffron-blaze transition-colors"
                 data-testid="footer-email"

@@ -1,6 +1,8 @@
 import { Phone, MapPin, Clock, Facebook, Mail } from "lucide-react";
+import { useContent } from "../context/ContentContext";
 
 const Footer = () => {
+  const { content, loading } = useContent();
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
@@ -18,6 +20,10 @@ const Footer = () => {
     }
   };
 
+  if (loading || !content) {
+    return <footer className="bg-deep-char text-cream-paper pt-20" />;
+  }
+
   return (
     <footer
       className="bg-deep-char text-cream-paper footer-wave pt-20"
@@ -31,13 +37,12 @@ const Footer = () => {
               Taco's <span className="text-saffron-blaze">&</span> Things
             </h3>
             <p className="font-sans text-cream-paper/70 mb-6 leading-relaxed">
-              Where Mumbai meets Mexico City. Experience the bold fusion of
-              Indian spices and Mexican flavours in Clyde North.
+              {content.footer_description}
             </p>
             {/* Social Links */}
             <div className="flex gap-4">
               <a
-                href="https://www.facebook.com/p/Tacos-Things-61575431517600/"
+                href={content.facebook_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-cream-paper/10 rounded-full flex items-center justify-center hover:bg-saffron-blaze transition-colors"
@@ -46,7 +51,7 @@ const Footer = () => {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="mailto:hello@tacosandthings.com.au"
+                href={`mailto:${content.contact_email}`}
                 className="w-10 h-10 bg-cream-paper/10 rounded-full flex items-center justify-center hover:bg-saffron-blaze transition-colors"
                 data-testid="footer-email"
               >
@@ -88,27 +93,23 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-saffron-blaze flex-shrink-0 mt-1" />
                 <span className="font-sans text-cream-paper/70">
-                  Unit 3/47 Rainier Cres,
-                  <br />
-                  Clyde North VIC 3978
+                  {content.contact_address}
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-saffron-blaze flex-shrink-0" />
                 <a
-                  href="tel:0439406042"
+                  href={`tel:${content.contact_phone.replace(/\s/g, '')}`}
                   className="font-sans text-cream-paper/70 hover:text-saffron-blaze transition-colors"
                   data-testid="footer-phone"
                 >
-                  0439 406 042
+                  {content.contact_phone}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-saffron-blaze flex-shrink-0 mt-1" />
                 <span className="font-sans text-cream-paper/70">
-                  Open Daily
-                  <br />
-                  5:00 PM onwards
+                  {content.contact_hours}
                 </span>
               </li>
             </ul>

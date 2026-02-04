@@ -244,7 +244,7 @@ const Menu = ({ items }) => {
             </TabsList>
           </div>
 
-          <div className="mt-8 pt-4">
+          <div className="mt-12 lg:mt-16">
           {/* Menu Items Grid */}
           {categories.map((category) => (
             <TabsContent key={category.id} value={category.id}>

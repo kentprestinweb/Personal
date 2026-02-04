@@ -52,6 +52,9 @@ Build a modern, professional restaurant website for **Tacos & Things**, a highly
 - [x] Added horizontal swipe gesture support for category tabs
 - [x] Tabs now display as single scrollable row on mobile/tablet
 - [x] Added gradient fade indicators to hint at scrollable content
+- [x] Added floating category indicator showing current selection while scrolling
+- [x] Added left/right arrow buttons for easier navigation on mobile/tablet
+- [x] Implemented strict horizontal scroll lock (no vertical drift while swiping)
 
 ## Prioritized Backlog
 

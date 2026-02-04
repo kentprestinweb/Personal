@@ -566,18 +566,108 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Image URL */}
+              {/* Image */}
               <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  Image URL
+                <label className="block text-sm font-sans text-deep-char/70 mb-2">
+                  Image
                 </label>
-                <input
-                  type="url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                  placeholder="https://..."
-                />
+                
+                {/* Toggle between URL and File upload */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setImageInputType("url")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-sans transition-colors ${
+                      imageInputType === "url"
+                        ? "bg-saffron-blaze text-white"
+                        : "bg-gray-100 text-deep-char/70 hover:bg-gray-200"
+                    }`}
+                  >
+                    <Link className="w-4 h-4" />
+                    URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageInputType("file")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-sans transition-colors ${
+                      imageInputType === "file"
+                        ? "bg-saffron-blaze text-white"
+                        : "bg-gray-100 text-deep-char/70 hover:bg-gray-200"
+                    }`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload File
+                  </button>
+                </div>
+
+                {imageInputType === "url" ? (
+                  <input
+                    type="url"
+                    value={formData.image_url}
+                    onChange={(e) => {
+                      setFormData({ ...formData, image_url: e.target.value });
+                      setImagePreview(e.target.value);
+                    }}
+                    className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
+                    placeholder="https://..."
+                  />
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-maize-gold/30 bg-white hover:border-saffron-blaze hover:bg-saffron-blaze/5 transition-colors font-sans text-deep-char/60 flex items-center justify-center gap-2"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-saffron-blaze border-t-transparent rounded-full animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5" />
+                          Click to select image
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-deep-char/50 mt-1 font-sans">
+                      Max 5MB. Formats: JPEG, PNG, WebP, GIF
+                    </p>
+                  </div>
+                )}
+
+                {/* Image Preview */}
+                {(imagePreview || formData.image_url) && (
+                  <div className="mt-3 relative">
+                    <img
+                      src={imagePreview || formData.image_url}
+                      alt="Preview"
+                      className="w-full h-32 object-cover rounded-xl border border-maize-gold/20"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, image_url: "" });
+                        setImagePreview("");
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Badges */}

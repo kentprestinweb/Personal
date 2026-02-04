@@ -66,6 +66,10 @@ const MenuItemCard = ({ item }) => {
 
 const Menu = ({ items }) => {
   const [activeTab, setActiveTab] = useState("most-ordered");
+  const [showIndicator, setShowIndicator] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const tabsRef = useRef(null);
 
   const categories = [
     { id: "most-ordered", name: "Most Ordered", emoji: "⭐" },
@@ -82,6 +86,50 @@ const Menu = ({ items }) => {
     { id: "sides", name: "Sides", emoji: "🍟" },
     { id: "desserts", name: "Desserts", emoji: "🍨" },
   ];
+
+  const activeCategory = categories.find(c => c.id === activeTab);
+
+  // Check scroll position to show/hide arrows
+  const checkScrollPosition = () => {
+    if (tabsRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  // Scroll tabs left/right
+  const scrollTabs = (direction) => {
+    if (tabsRef.current) {
+      const scrollAmount = 200;
+      tabsRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Show floating indicator when scrolling
+  useEffect(() => {
+    const tabsEl = tabsRef.current;
+    if (!tabsEl) return;
+
+    let scrollTimeout;
+    const handleScroll = () => {
+      setShowIndicator(true);
+      checkScrollPosition();
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => setShowIndicator(false), 1500);
+    };
+
+    tabsEl.addEventListener('scroll', handleScroll, { passive: true });
+    checkScrollPosition();
+
+    return () => {
+      tabsEl.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
 
   return (
     <section

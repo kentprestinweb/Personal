@@ -55,6 +55,12 @@ Build a modern, professional restaurant website for **Tacos & Things**, a highly
 - [x] Added floating category indicator showing current selection while scrolling
 - [x] Added left/right arrow buttons for easier navigation on mobile/tablet
 - [x] Implemented strict horizontal scroll lock (no vertical drift while swiping)
+- [x] Added comprehensive SEO meta tags for Google search visibility
+- [x] Added Open Graph tags for Facebook/social sharing
+- [x] Added Twitter Card tags for Twitter sharing
+- [x] Added JSON-LD structured data (LocalBusiness schema) for rich search results
+- [x] Added geographic meta tags for local SEO
+- [x] Updated Facebook link to official page (https://www.facebook.com/p/Tacos-Things-61575431517600/)
 
 ## Prioritized Backlog
 

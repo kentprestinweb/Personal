@@ -171,18 +171,20 @@ const HomePage = () => {
 
 function App() {
   return (
-    <CartProvider>
-      <div className="App">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          </Routes>
-        </BrowserRouter>
-        <Toaster position="top-right" richColors />
-      </div>
-    </CartProvider>
+    <ContentProvider>
+      <CartProvider>
+        <div className="App">
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/admin" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster position="top-right" richColors />
+        </div>
+      </CartProvider>
+    </ContentProvider>
   );
 }
 

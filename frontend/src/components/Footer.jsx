@@ -37,7 +37,7 @@ const Footer = () => {
             {/* Social Links */}
             <div className="flex gap-4">
               <a
-                href="https://www.facebook.com"
+                href="https://www.facebook.com/p/Tacos-Things-61575431517600/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-cream-paper/10 rounded-full flex items-center justify-center hover:bg-saffron-blaze transition-colors"

@@ -78,7 +78,7 @@ const Gallery = () => {
             Share your experience with us!
           </p>
           <a
-            href="https://www.facebook.com"
+            href="https://www.facebook.com/p/Tacos-Things-61575431517600/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-saffron-blaze text-white rounded-full font-sans font-medium hover:bg-chili-red transition-colors"

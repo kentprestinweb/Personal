@@ -280,6 +280,15 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowContentManager(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-cream-paper/10 rounded-lg hover:bg-cream-paper/20 transition-colors"
+              title="Edit Website Content"
+              data-testid="content-btn"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Edit Content</span>
+            </button>
+            <button
               onClick={() => setShowSettings(true)}
               className="p-2 hover:bg-cream-paper/10 rounded-lg transition-colors"
               title="Settings"

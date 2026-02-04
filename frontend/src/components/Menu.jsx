@@ -157,10 +157,12 @@ const Menu = ({ items }) => {
           {/* Floating Category Indicator - Mobile/Tablet only */}
           <div 
             className={`
-              fixed top-20 left-1/2 -translate-x-1/2 z-50 lg:hidden
+              fixed z-50 lg:hidden
+              left-1/2 -translate-x-1/2
               transition-all duration-300 ease-out
-              ${showIndicator ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
+              ${showIndicator ? 'opacity-100' : 'opacity-0 pointer-events-none'}
             `}
+            style={{ top: '80px' }}
           >
             <div className="bg-deep-char/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2">
               <span className="text-lg">{activeCategory?.emoji}</span>

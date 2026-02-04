@@ -101,3 +101,19 @@ html {
         display: contents !important;
     }
 }
+
+/* Hide scrollbar for horizontal swipe menus */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Touch scroll momentum */
+.touch-pan-x {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+}

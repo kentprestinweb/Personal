@@ -157,6 +157,7 @@ const HomePage = () => {
       <About />
       <Menu items={menuItems} />
       <Reviews reviews={reviews} />
+      <Videos />
       <Gallery />
       <Newsletter />
       <Contact />

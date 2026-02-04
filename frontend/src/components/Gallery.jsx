@@ -1,34 +1,52 @@
 const Gallery = () => {
   const images = [
     {
-      src: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&q=80",
-      alt: "Signature Tacos",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/n2cl794d_1.jpg",
+      alt: "Delicious Tacos",
       span: "col-span-2 row-span-2",
+      height: "h-[300px] md:h-[500px]"
     },
     {
-      src: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400&q=80",
-      alt: "Tandoori Chicken Taco",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/w0c8gqkq_2.jpg",
+      alt: "Signature Dish",
       span: "col-span-1",
+      height: "h-[145px] md:h-[240px]"
     },
     {
-      src: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400&q=80",
-      alt: "Masala Fries",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/q4q0k8fb_6.jpg",
+      alt: "Crispy Chicken Strips",
       span: "col-span-1",
+      height: "h-[145px] md:h-[240px]"
     },
     {
-      src: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80",
-      alt: "Butter Chicken",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/puod0awa_7.jpg",
+      alt: "Fusion Noodle Burger",
       span: "col-span-1",
+      height: "h-[145px] md:h-[240px]"
     },
     {
-      src: "https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=400&q=80",
-      alt: "Quesadilla",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/wdsnvmjf_3.jpg",
+      alt: "Fresh Creation",
       span: "col-span-1",
+      height: "h-[145px] md:h-[240px]"
     },
     {
-      src: "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=600&q=80",
-      alt: "Nachos",
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/18ze1ust_8.jpg",
+      alt: "Grilled Prawns with Chips",
       span: "col-span-2",
+      height: "h-[180px] md:h-[280px]"
+    },
+    {
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/ypow9kz5_4.jpg",
+      alt: "Chef's Special",
+      span: "col-span-1",
+      height: "h-[180px] md:h-[280px]"
+    },
+    {
+      src: "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/o7eixpi3_5.jpg",
+      alt: "Fusion Delight",
+      span: "col-span-1",
+      height: "h-[180px] md:h-[280px]"
     },
   ];
 
@@ -54,25 +72,23 @@ const Gallery = () => {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {images.map((image, index) => (
             <div
               key={index}
-              className={`gallery-item rounded-2xl overflow-hidden ${image.span} ${
-                index === 0 ? "h-[300px] md:h-[500px]" : "h-[150px] md:h-[240px]"
-              }`}
+              className={`gallery-item rounded-2xl overflow-hidden ${image.span} ${image.height} group`}
               data-testid={`gallery-image-${index}`}
             >
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
           ))}
         </div>
 
-        {/* Instagram CTA */}
+        {/* Facebook CTA */}
         <div className="text-center mt-12">
           <p className="font-sans text-deep-char/70 mb-4">
             Share your experience with us!

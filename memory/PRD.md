@@ -81,7 +81,8 @@ Build a modern, professional restaurant website for **Tacos & Things**, a highly
 - All core features implemented ✅
 
 ### P1 (High Priority - Future)
-- [ ] Admin dashboard for menu management
+- [x] Admin dashboard for menu management - COMPLETED
+- [ ] Direct online ordering (bypass Uber Eats/DoorDash fees)
 - [ ] Order analytics integration
 
 ### P2 (Nice to Have)

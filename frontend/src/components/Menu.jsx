@@ -134,9 +134,25 @@ const Menu = ({ items }) => {
   return (
     <section
       id="menu"
-      className="py-20 md:py-32"
+      className="py-20 md:py-32 relative"
       data-testid="menu-section"
     >
+      {/* Floating Category Indicator - Mobile/Tablet only - OUTSIDE main content */}
+      <div 
+        className={`
+          fixed left-1/2 -translate-x-1/2 z-[100] lg:hidden
+          transition-all duration-300 ease-out
+          ${showIndicator ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+        `}
+        style={{ top: '100px' }}
+        data-testid="floating-category-indicator"
+      >
+        <div className="bg-deep-char text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-white/10">
+          <span className="text-lg">{activeCategory?.emoji}</span>
+          <span className="font-sans font-semibold text-sm">{activeCategory?.name}</span>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">

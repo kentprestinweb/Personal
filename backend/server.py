@@ -447,6 +447,78 @@ async def admin_upload_file(file: UploadFile = File(...), user: dict = Depends(v
     # Return the URL path
     return {"url": f"/api/uploads/{filename}", "filename": filename}
 
+# ----- Site Content Endpoints -----
+
+# Default content
+DEFAULT_CONTENT = {
+    "hero_headline": "Where Indian Spices Meet Mexican Soul",
+    "hero_tagline": "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite.",
+    "hero_image": "/taco-truck-hero.png",
+    "hero_uber_eats_url": "https://www.ubereats.com/au/store/tacos-%26-things-clyde-north/s8w9QiFpTvSfc1teUJOU3w",
+    "hero_doordash_url": "https://www.doordash.com/store/taco's-&-things-clyde-north-27aborrar633898/",
+    "about_label": "Our Story",
+    "about_headline": "A Flavourful Journey of Two Cultures",
+    "about_text_1": "At Taco's & Things, we believe that the best flavours are born from unexpected combinations. Our culinary journey began with a simple idea: what if we brought together the aromatic spices of India with the vibrant, fresh flavours of Mexico?",
+    "about_text_2": "From our signature Tandoori Paneer Tacos to our crispy Southern Chicken creations, every dish tells a story of two cultures coming together in perfect harmony. We use only the freshest ingredients and authentic spices to create dishes that will take your taste buds on an unforgettable adventure.",
+    "gallery_label": "Gallery",
+    "gallery_headline": "A Feast for the Eyes",
+    "gallery_description": "Take a peek at our mouthwatering creations. Every dish is a work of art, crafted to delight both your eyes and taste buds.",
+    "gallery_images": [
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/n2cl794d_1.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/w0c8gqkq_2.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/q4q0k8fb_6.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/puod0awa_7.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/wdsnvmjf_3.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/18ze1ust_8.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/ypow9kz5_4.jpg",
+        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/o7eixpi3_5.jpg"
+    ],
+    "contact_label": "Visit Us",
+    "contact_headline": "Come Say Hello",
+    "contact_address": "Unit 3/47 Rainier Cres, Clyde North VIC 3978",
+    "contact_phone": "0439 406 042",
+    "contact_email": "hello@tacosandthings.com.au",
+    "contact_hours": "Open daily from 5:00 PM",
+    "contact_map_embed": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3146.5!2d145.35!3d-38.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad615e4b4ab4b71%3A0x4b9b4b9b4b9b4b9b!2sUnit%203%2F47%20Rainier%20Cres%2C%20Clyde%20North%20VIC%203978!5e0!3m2!1sen!2sau!4v1234567890",
+    "footer_tagline": "Where Indian Spices Meet Mexican Soul",
+    "footer_description": "Bringing you the best fusion cuisine in Clyde North. Fresh ingredients, bold flavors, unforgettable experiences.",
+    "facebook_url": "https://www.facebook.com/p/Tacos-Things-61575431517600/"
+}
+
+# Initialize site content
+@app.on_event("startup")
+async def init_site_content():
+    content = await db.site_content.find_one({})
+    if not content:
+        await db.site_content.insert_one(DEFAULT_CONTENT.copy())
+        logger.info("Site content initialized")
+
+# Get site content (public endpoint)
+@api_router.get("/content")
+async def get_site_content():
+    content = await db.site_content.find_one({}, {"_id": 0})
+    if not content:
+        return DEFAULT_CONTENT
+    return content
+
+# Get site content (admin)
+@api_router.get("/admin/content")
+async def admin_get_site_content(user: dict = Depends(verify_token)):
+    content = await db.site_content.find_one({}, {"_id": 0})
+    if not content:
+        return DEFAULT_CONTENT
+    return content
+
+# Update site content (admin)
+@api_router.put("/admin/content")
+async def admin_update_site_content(update: SiteContentUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    await db.site_content.update_one({}, {"$set": update_data}, upsert=True)
+    return {"message": "Content updated successfully"}
+
 # Seed data endpoint
 @api_router.post("/seed")
 async def seed_data():

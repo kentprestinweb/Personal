@@ -209,14 +209,13 @@ const Menu = ({ items }) => {
             <TabsList 
               ref={tabsRef}
               className="
-                flex gap-2 bg-transparent relative z-10 py-2 mb-2
+                flex gap-2 bg-transparent relative z-10 py-3 mb-4
                 snap-x snap-mandatory
-                -mx-4 px-12 lg:mx-0 lg:px-0
-                lg:flex-wrap lg:justify-center lg:overflow-visible
+                -mx-4 px-12
+                overflow-x-auto overflow-y-hidden
+                lg:mx-0 lg:px-0 lg:flex-wrap lg:justify-center lg:overflow-visible lg:pb-2
               "
               style={{
-                overflowX: 'auto',
-                overflowY: 'hidden',
                 touchAction: 'pan-x',
                 WebkitOverflowScrolling: 'touch',
                 scrollbarWidth: 'none',

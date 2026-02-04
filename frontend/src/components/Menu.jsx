@@ -106,7 +106,7 @@ const Menu = ({ items }) => {
 
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap justify-center gap-2 bg-transparent">
+          <TabsList className="flex flex-wrap justify-center gap-2 bg-transparent relative z-10 pb-6">
             {categories.map((category) => (
               <TabsTrigger
                 key={category.id}
@@ -124,7 +124,7 @@ const Menu = ({ items }) => {
             ))}
           </TabsList>
 
-          <div className="mt-16">
+          <div className="mt-8 pt-4">
           {/* Menu Items Grid */}
           {categories.map((category) => (
             <TabsContent key={category.id} value={category.id}>

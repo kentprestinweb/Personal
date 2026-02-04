@@ -817,6 +817,11 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Content Manager Modal */}
+      {showContentManager && (
+        <ContentManager onClose={() => setShowContentManager(false)} />
+      )}
     </div>
   );
 };

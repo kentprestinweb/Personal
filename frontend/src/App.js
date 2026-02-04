@@ -13,6 +13,8 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import Cart from "./components/Cart";
 import OrderForm from "./components/OrderForm";
+import AdminLogin from "./components/admin/AdminLogin";
+import AdminDashboard from "./components/admin/AdminDashboard";
 import { Toaster } from "./components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

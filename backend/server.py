@@ -360,6 +360,29 @@ async def admin_get_categories(user: dict = Depends(verify_token)):
     ]
     return categories
 
+# File upload endpoint
+@api_router.post("/admin/upload")
+async def admin_upload_file(file: UploadFile = File(...), user: dict = Depends(verify_token)):
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, WebP, GIF")
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"{uuid.uuid4()}.{ext}"
+    filepath = UPLOADS_DIR / filename
+    
+    # Save file
+    try:
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+    
+    # Return the URL path
+    return {"url": f"/api/uploads/{filename}", "filename": filename}
+
 # Seed data endpoint
 @api_router.post("/seed")
 async def seed_data():

@@ -118,22 +118,7 @@ const Hero = () => {
                 />
               </div>
 
-              {/* Floating Card 1 */}
-              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl hidden md:block">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-saffron-blaze/10 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🌮</span>
-                  </div>
-                  <div>
-                    <p className="font-sans text-sm text-deep-char/60">
-                      Signature Dish
-                    </p>
-                    <p className="font-serif text-deep-char">Tandoori Taco</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating Card 2 */}
+              {/* Floating Card - Indian-Mexican Fusion */}
               <div className="absolute -top-4 -right-4 bg-maize-gold p-4 rounded-2xl shadow-xl hidden md:block">
                 <p className="font-serif text-deep-char text-lg">
                   Indian-Mexican

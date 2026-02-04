@@ -1,6 +1,9 @@
 import { Utensils, Leaf, Heart, Award } from "lucide-react";
+import { useContent } from "../context/ContentContext";
 
 const About = () => {
+  const { content, loading } = useContent();
+
   const features = [
     {
       icon: <Utensils className="w-6 h-6" />,
@@ -24,6 +27,10 @@ const About = () => {
     }
   ];
 
+  if (loading || !content) {
+    return <section id="about" className="py-20 md:py-32" />;
+  }
+
   return (
     <section
       id="about"
@@ -32,22 +39,16 @@ const About = () => {
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <span className="inline-block font-sans text-saffron-blaze font-bold uppercase tracking-wider mb-4">
-          Our Story
+          {content.about_label}
         </span>
         <h2 className="text-4xl md:text-5xl font-serif text-deep-char mb-6">
-          A Flavourful Journey of Two Cultures
+          {content.about_headline}
         </h2>
         <p className="font-sans text-lg mb-6 text-deep-char/70 max-w-3xl mx-auto">
-          At Taco's & Things, we believe that the best flavours are born from unexpected 
-          combinations. Our culinary journey began with a simple idea: what if we brought 
-          together the aromatic spices of India with the vibrant, fresh flavours of Mexico?
+          {content.about_text_1}
         </p>
         <p className="text-lg text-deep-char/70 font-sans leading-relaxed mb-12 max-w-3xl mx-auto">
-          From our signature Tandoori Paneer Tacos to our crispy Southern
-          Chicken creations, every dish tells a story of two cultures coming
-          together in perfect harmony. We use only the freshest ingredients
-          and authentic spices to create dishes that will take your taste
-          buds on an unforgettable adventure.
+          {content.about_text_2}
         </p>
 
         {/* Features Grid */}

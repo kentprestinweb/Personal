@@ -230,6 +230,130 @@ async def get_reviews():
     reviews = await db.reviews.find({}, {"_id": 0}).to_list(50)
     return reviews
 
+# ----- Admin Routes -----
+
+# Initialize admin credentials if not exists
+@app.on_event("startup")
+async def init_admin():
+    admin = await db.admin.find_one({})
+    if not admin:
+        await db.admin.insert_one({
+            "username": "tacosandthings",
+            "password": hash_password("ubereatsdoordash"),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        logger.info("Admin credentials initialized")
+
+@api_router.post("/admin/login")
+async def admin_login(credentials: AdminLogin):
+    admin = await db.admin.find_one({"username": credentials.username})
+    if not admin or admin["password"] != hash_password(credentials.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Generate token
+    token = secrets.token_urlsafe(32)
+    active_tokens[token] = {"username": credentials.username}
+    
+    return {"token": token, "message": "Login successful"}
+
+@api_router.post("/admin/logout")
+async def admin_logout(user: dict = Depends(verify_token)):
+    # Remove token from active tokens
+    token_to_remove = None
+    for token, data in active_tokens.items():
+        if data["username"] == user["username"]:
+            token_to_remove = token
+            break
+    if token_to_remove:
+        del active_tokens[token_to_remove]
+    return {"message": "Logged out successfully"}
+
+@api_router.get("/admin/verify")
+async def verify_admin(user: dict = Depends(verify_token)):
+    return {"valid": True, "username": user["username"]}
+
+@api_router.put("/admin/credentials")
+async def update_admin_credentials(update: AdminCredentialsUpdate, user: dict = Depends(verify_token)):
+    admin = await db.admin.find_one({"username": user["username"]})
+    if not admin or admin["password"] != hash_password(update.current_password):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    
+    update_data = {}
+    if update.new_username:
+        update_data["username"] = update.new_username
+    if update.new_password:
+        update_data["password"] = hash_password(update.new_password)
+    
+    if update_data:
+        await db.admin.update_one({"username": user["username"]}, {"$set": update_data})
+        # Update active token username if changed
+        if update.new_username:
+            for token, data in active_tokens.items():
+                if data["username"] == user["username"]:
+                    active_tokens[token]["username"] = update.new_username
+    
+    return {"message": "Credentials updated successfully"}
+
+# Admin Menu Management
+@api_router.get("/admin/menu")
+async def admin_get_menu(user: dict = Depends(verify_token)):
+    items = await db.menu_items.find({}, {"_id": 0}).to_list(500)
+    return items
+
+@api_router.post("/admin/menu")
+async def admin_create_menu_item(item: MenuItemCreate, user: dict = Depends(verify_token)):
+    menu_item = MenuItem(**item.model_dump())
+    doc = menu_item.model_dump()
+    doc["is_sold_out"] = False
+    await db.menu_items.insert_one(doc)
+    return {"message": "Item created", "item": doc}
+
+@api_router.put("/admin/menu/{item_id}")
+async def admin_update_menu_item(item_id: str, update: MenuItemUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.menu_items.update_one({"id": item_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    
+    return {"message": "Item updated"}
+
+@api_router.delete("/admin/menu/{item_id}")
+async def admin_delete_menu_item(item_id: str, user: dict = Depends(verify_token)):
+    result = await db.menu_items.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return {"message": "Item deleted"}
+
+@api_router.post("/admin/menu/{item_id}/image")
+async def admin_upload_image(item_id: str, image_url: str, user: dict = Depends(verify_token)):
+    result = await db.menu_items.update_one({"id": item_id}, {"$set": {"image_url": image_url}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return {"message": "Image updated"}
+
+# Get categories
+@api_router.get("/admin/categories")
+async def admin_get_categories(user: dict = Depends(verify_token)):
+    categories = [
+        {"id": "most-ordered", "name": "Most Ordered", "emoji": "⭐"},
+        {"id": "tacos", "name": "Tacos", "emoji": "🌮"},
+        {"id": "tandoori-tacos", "name": "Tandoori Tacos", "emoji": "🔥"},
+        {"id": "southern-tacos", "name": "Southern Tacos", "emoji": "🍗"},
+        {"id": "indian", "name": "Bit of Indian", "emoji": "🍛"},
+        {"id": "fish-chips", "name": "Fish & Chips", "emoji": "🐟"},
+        {"id": "grilled-fish", "name": "Grilled Fish", "emoji": "🍽️"},
+        {"id": "burgers", "name": "Burgers", "emoji": "🍔"},
+        {"id": "sharing", "name": "Sharing Platter", "emoji": "🍱"},
+        {"id": "snack-packs", "name": "Snack Packs", "emoji": "📦"},
+        {"id": "kids", "name": "Kid's", "emoji": "👶"},
+        {"id": "sides", "name": "Sides", "emoji": "🍟"},
+        {"id": "desserts", "name": "Desserts", "emoji": "🍨"},
+    ]
+    return categories
+
 # Seed data endpoint
 @api_router.post("/seed")
 async def seed_data():

@@ -1,16 +1,20 @@
 import { ChevronDown, MapPin, Clock, Star } from "lucide-react";
 import { Button } from "./ui/button";
-
-const UBEREATS_URL = "https://www.ubereats.com/au/store/tacos-%26-things/dPoR8c_FQVeNNV1SyGY3Ow?diningMode=PICKUP&utm_campaign=CM2508147-search-free-nonbrand-google-pas_e_all_acq_Global&utm_medium=search-free-nonbrand&utm_source=google-pas";
-const DOORDASH_URL = "https://www.doordash.com/store/taco's-&-things-clyde-north-33378679/58290346/?pickup=true&utm_campaign=gpa";
+import { useContent } from "../context/ContentContext";
 
 const Hero = () => {
+  const { content, loading } = useContent();
+
   const scrollToMenu = () => {
     const element = document.querySelector("#menu");
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  if (loading || !content) {
+    return <section id="home" className="min-h-screen pt-20 flex items-center hero-pattern" />;
+  }
 
   return (
     <section
@@ -45,16 +49,15 @@ const Hero = () => {
             </h1>
             <p className="font-serif text-2xl text-deep-char/80 mb-4">Taco's & Things</p>
 
-            {/* Subheading */}
+            {/* Subheading - Dynamic */}
             <p className="text-lg md:text-xl text-deep-char/70 font-sans leading-relaxed mb-8 max-w-lg">
-              Experience the bold fusion of Indian spices and Mexican flavours right here in your neighbourhood. 
-              Fresh ingredients, authentic recipes, and a taste adventure your family will love.
+              {content.hero_tagline}
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Dynamic URLs */}
             <div className="flex flex-wrap gap-4 mb-6">
               <a
-                href={UBEREATS_URL}
+                href={content.hero_uber_eats_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-[#06C167] text-white px-6 py-4 rounded-full font-bold hover:bg-[#05a857] transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
@@ -66,7 +69,7 @@ const Hero = () => {
                 Order on Uber Eats
               </a>
               <a
-                href={DOORDASH_URL}
+                href={content.hero_doordash_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-[#FF3008] text-white px-6 py-4 rounded-full font-bold hover:bg-[#e62b07] transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
@@ -108,10 +111,10 @@ const Hero = () => {
           {/* Right Content - Hero Image */}
           <div className="relative section-fade" style={{ animationDelay: "0.2s" }}>
             <div className="relative">
-              {/* Main Image */}
+              {/* Main Image - Dynamic */}
               <div className="organic-shape overflow-hidden shadow-2xl">
                 <img
-                  src="/taco-truck-hero.png"
+                  src={content.hero_image}
                   alt="Taco's & Things Food Truck"
                   className="w-full h-[400px] md:h-[500px] object-cover"
                   data-testid="hero-image"

@@ -106,23 +106,48 @@ const Menu = ({ items }) => {
 
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap justify-center gap-2 bg-transparent relative z-10 pb-6">
-            {categories.map((category) => (
-              <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className={`px-4 py-2 rounded-full font-sans font-medium transition-all text-sm ${
-                  activeTab === category.id
-                    ? "bg-saffron-blaze text-white shadow-lg"
-                    : "bg-white text-deep-char hover:bg-maize-gold/30"
-                }`}
-                data-testid={`menu-tab-${category.id}`}
-              >
-                <span className="mr-1">{category.emoji}</span>
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
+          <div className="relative">
+            {/* Gradient fade indicators for scroll */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream-paper to-transparent z-20 pointer-events-none md:hidden" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-cream-paper to-transparent z-20 pointer-events-none md:hidden" />
+            
+            <TabsList 
+              className="
+                flex gap-2 bg-transparent relative z-10 pb-4 mb-2
+                overflow-x-auto scrollbar-hide
+                snap-x snap-mandatory
+                -mx-4 px-4 md:mx-0 md:px-0
+                md:flex-wrap md:justify-center md:overflow-visible
+                touch-pan-x
+              "
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {categories.map((category) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className={`
+                    px-4 py-2 rounded-full font-sans font-medium transition-all text-sm
+                    flex-shrink-0 snap-start
+                    ${
+                      activeTab === category.id
+                        ? "bg-saffron-blaze text-white shadow-lg"
+                        : "bg-white text-deep-char hover:bg-maize-gold/30 border border-maize-gold/30"
+                    }
+                  `}
+                  data-testid={`menu-tab-${category.id}`}
+                >
+                  <span className="mr-1">{category.emoji}</span>
+                  <span className="whitespace-nowrap">{category.name}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           <div className="mt-8 pt-4">
           {/* Menu Items Grid */}

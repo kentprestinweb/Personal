@@ -61,6 +61,19 @@ Build a modern, professional restaurant website for **Tacos & Things**, a highly
 - [x] Added JSON-LD structured data (LocalBusiness schema) for rich search results
 - [x] Added geographic meta tags for local SEO
 - [x] Updated Facebook link to official page (https://www.facebook.com/p/Tacos-Things-61575431517600/)
+- [x] Removed Instagram icon from footer
+- [x] Replaced Gallery placeholder images with 8 real restaurant photos
+- [x] Cleaned up About section (removed stock images)
+- [x] **Admin Dashboard** - Full menu management system:
+  - Login page at /admin with secure authentication
+  - Dashboard showing all menu items with stats
+  - Add/Edit/Delete menu items
+  - Upload/change food photos via URL
+  - Mark items as Popular/Spicy/Vegetarian
+  - Mark items as "Sold Out" (temporarily hide)
+  - Search and filter by category
+  - Settings page to change admin credentials
+  - Credentials: tacosandthings / ubereatsdoordash
 
 ## Prioritized Backlog
 

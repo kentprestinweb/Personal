@@ -312,6 +312,8 @@ async def admin_create_menu_item(item: MenuItemCreate, user: dict = Depends(veri
     doc = menu_item.model_dump()
     doc["is_sold_out"] = False
     await db.menu_items.insert_one(doc)
+    # Remove _id from response (MongoDB adds it after insert)
+    doc.pop("_id", None)
     return {"message": "Item created", "item": doc}
 
 @api_router.put("/admin/menu/{item_id}")

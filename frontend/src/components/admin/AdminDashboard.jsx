@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showContentManager, setShowContentManager] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({

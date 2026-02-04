@@ -129,6 +129,28 @@ class Review(BaseModel):
     text: str
     date: str
 
+# ----- Admin Models -----
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class AdminCredentialsUpdate(BaseModel):
+    current_password: str
+    new_username: Optional[str] = None
+    new_password: Optional[str] = None
+
+class MenuItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
+    image_url: Optional[str] = None
+    is_vegetarian: Optional[bool] = None
+    is_spicy: Optional[bool] = None
+    is_popular: Optional[bool] = None
+    is_sold_out: Optional[bool] = None
+
 # ----- Routes -----
 
 @api_router.get("/")

@@ -19,7 +19,9 @@ import {
   Menu,
   Upload,
   Link,
+  FileText,
 } from "lucide-react";
+import ContentManager from "./ContentManager";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

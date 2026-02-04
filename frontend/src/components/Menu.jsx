@@ -11,13 +11,21 @@ const MenuItemCard = ({ item }) => {
       className="menu-card bg-white rounded-2xl overflow-hidden shadow-md border border-maize-gold/20 group"
       data-testid={`menu-item-${item.id}`}
     >
-      {/* Image */}
+      {/* Image with hover story */}
       <div className="relative h-48 overflow-hidden">
         <img
           src={item.image_url || "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"}
           alt={item.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
+        
+        {/* Hover Story Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-deep-char/90 via-deep-char/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+          <p className="text-cream-paper text-sm font-sans leading-relaxed">
+            {item.description}
+          </p>
+        </div>
+        
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-2">
           {item.is_popular && (
@@ -48,7 +56,7 @@ const MenuItemCard = ({ item }) => {
             A${item.price.toFixed(2)}
           </span>
         </div>
-        <p className="font-sans text-sm text-deep-char/60 mb-4 line-clamp-2">
+        <p className="font-sans text-sm text-deep-char/60 line-clamp-2">
           {item.description}
         </p>
       </div>

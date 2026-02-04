@@ -112,6 +112,21 @@ html {
     display: none;
 }
 
+/* Strict horizontal scroll - prevents vertical motion while swiping */
+.horizontal-scroll-lock {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: none;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.horizontal-scroll-lock::-webkit-scrollbar {
+    display: none;
+}
+
 /* Touch scroll momentum */
 .touch-pan-x {
     touch-action: pan-x;

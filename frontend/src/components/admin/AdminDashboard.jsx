@@ -113,6 +113,8 @@ const AdminDashboard = () => {
       is_spicy: false,
       is_popular: false,
     });
+    setImageInputType("url");
+    setImagePreview("");
     setShowModal(true);
   };
 
@@ -128,7 +130,58 @@ const AdminDashboard = () => {
       is_spicy: item.is_spicy,
       is_popular: item.is_popular,
     });
+    setImageInputType("url");
+    setImagePreview(item.image_url || "");
     setShowModal(true);
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      showMessage("error", "Invalid file type. Use JPEG, PNG, WebP, or GIF");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage("error", "File too large. Maximum size is 5MB");
+      return;
+    }
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload file
+    setUploading(true);
+    try {
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+
+      const response = await axios.post(`${API}/admin/upload`, uploadData, {
+        ...getAuthHeaders(),
+        headers: {
+          ...getAuthHeaders().headers,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Construct full URL for the uploaded image
+      const baseUrl = process.env.REACT_APP_BACKEND_URL;
+      const imageUrl = `${baseUrl}${response.data.url}`;
+      setFormData({ ...formData, image_url: imageUrl });
+      showMessage("success", "Image uploaded successfully");
+    } catch (err) {
+      showMessage("error", err.response?.data?.detail || "Failed to upload image");
+      setImagePreview("");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {

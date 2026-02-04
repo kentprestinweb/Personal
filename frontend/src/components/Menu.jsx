@@ -171,7 +171,7 @@ const Menu = ({ items }) => {
         {/* Category Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
-          <div className="relative overflow-hidden">
+          <div className="relative">
             {/* Left scroll button */}
             <button
               onClick={() => scrollTabs('left')}
@@ -209,7 +209,7 @@ const Menu = ({ items }) => {
             <TabsList 
               ref={tabsRef}
               className="
-                flex gap-2 bg-transparent relative z-10 pb-4 mb-2
+                flex gap-2 bg-transparent relative z-10 py-2 mb-2
                 snap-x snap-mandatory
                 -mx-4 px-12 lg:mx-0 lg:px-0
                 lg:flex-wrap lg:justify-center lg:overflow-visible

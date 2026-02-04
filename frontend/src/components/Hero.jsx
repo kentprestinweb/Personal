@@ -111,8 +111,8 @@ const Hero = () => {
               {/* Main Image */}
               <div className="organic-shape overflow-hidden shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80"
-                  alt="Delicious fusion tacos"
+                  src="/taco-truck-hero.png"
+                  alt="Taco's & Things Food Truck"
                   className="w-full h-[400px] md:h-[500px] object-cover"
                   data-testid="hero-image"
                 />

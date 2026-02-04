@@ -7,6 +7,7 @@ import Hero from "./components/Hero";
 import About from "./components/About";
 import Menu from "./components/Menu";
 import Reviews from "./components/Reviews";
+import Videos from "./components/Videos";
 import Gallery from "./components/Gallery";
 import Newsletter from "./components/Newsletter";
 import Contact from "./components/Contact";

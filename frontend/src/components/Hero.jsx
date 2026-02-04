@@ -38,20 +38,17 @@ const Hero = () => {
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif text-deep-char leading-tight mb-6">
-              Where{" "}
-              <span className="text-saffron-blaze">Mumbai</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif text-deep-char leading-tight mb-4">
+              Clyde North's
               <br />
-              Meets{" "}
-              <span className="text-guacamole-green">Mexico City</span>
+              <span className="text-saffron-blaze">Best Tacos</span>
             </h1>
-            <p className="font-serif text-2xl text-deep-char/80 -mt-4 mb-4">Taco's & Things</p>
+            <p className="font-serif text-2xl text-deep-char/80 mb-4">Taco's & Things</p>
 
             {/* Subheading */}
             <p className="text-lg md:text-xl text-deep-char/70 font-sans leading-relaxed mb-8 max-w-lg">
-              Experience the bold fusion of Indian spices and Mexican flavours.
-              Handcrafted tacos, exotic curries, and unforgettable taste
-              adventures await.
+              Experience the bold fusion of Indian spices and Mexican flavours right here in your neighbourhood. 
+              Fresh ingredients, authentic recipes, and a taste adventure your family will love.
             </p>
 
             {/* CTA Buttons */}

@@ -109,16 +109,16 @@ const Menu = ({ items }) => {
           {/* Mobile/Tablet: Horizontal scrollable single row with swipe */}
           <div className="relative">
             {/* Gradient fade indicators for scroll */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream-paper to-transparent z-20 pointer-events-none md:hidden" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-cream-paper to-transparent z-20 pointer-events-none md:hidden" />
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream-paper to-transparent z-20 pointer-events-none lg:hidden" />
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-cream-paper to-transparent z-20 pointer-events-none lg:hidden" />
             
             <TabsList 
               className="
                 flex gap-2 bg-transparent relative z-10 pb-4 mb-2
                 overflow-x-auto scrollbar-hide
                 snap-x snap-mandatory
-                -mx-4 px-4 md:mx-0 md:px-0
-                md:flex-wrap md:justify-center md:overflow-visible
+                -mx-4 px-4 lg:mx-0 lg:px-0
+                lg:flex-wrap lg:justify-center lg:overflow-visible
                 touch-pan-x
               "
               style={{

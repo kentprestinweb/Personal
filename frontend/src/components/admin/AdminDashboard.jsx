@@ -49,6 +49,10 @@ const AdminDashboard = () => {
     new_password: "",
   });
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [imageInputType, setImageInputType] = useState("url"); // "url" or "file"
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const getAuthHeaders = () => ({

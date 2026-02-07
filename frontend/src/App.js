@@ -161,9 +161,9 @@ const HomePage = () => {
           backgroundImage: `url('https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/7kfqr9np_Logo.jpg')`,
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '400px',
+          backgroundSize: '500px',
           backgroundAttachment: 'fixed',
-          opacity: 0.04,
+          opacity: 0.12,
         }}
       />
       {/* Main Content */}

@@ -52,11 +52,9 @@ const Navbar = () => {
             }}
             className="flex items-center gap-2"
             data-testid="navbar-logo">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/7kfqr9np_Logo.jpg"
-              alt="Taco's & Things Logo"
-              className="h-12 md:h-14 w-auto rounded-lg"
-            />
+            <span className="text-2xl md:text-3xl font-serif text-deep-char">
+              Taco's <span className="text-saffron-blaze">&</span> Things
+            </span>
           </a>
 
           {/* Desktop Navigation */}

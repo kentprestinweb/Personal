@@ -153,18 +153,33 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream-paper grain-overlay">
-      <Navbar />
-      <Hero />
-      <About />
-      <Menu items={menuItems} />
-      <Reviews reviews={reviews} />
-      <Gallery />
-      <Newsletter />
-      <Contact />
-      <Footer />
-      <Cart />
-      <OrderForm />
+    <div className="min-h-screen bg-cream-paper grain-overlay relative">
+      {/* Fixed Background Logo - Watermark Effect */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none flex items-center justify-center"
+        style={{
+          backgroundImage: `url('https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/7kfqr9np_Logo.jpg')`,
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: '400px',
+          backgroundAttachment: 'fixed',
+          opacity: 0.04,
+        }}
+      />
+      {/* Main Content */}
+      <div className="relative z-10">
+        <Navbar />
+        <Hero />
+        <About />
+        <Menu items={menuItems} />
+        <Reviews reviews={reviews} />
+        <Gallery />
+        <Newsletter />
+        <Contact />
+        <Footer />
+        <Cart />
+        <OrderForm />
+      </div>
     </div>
   );
 };

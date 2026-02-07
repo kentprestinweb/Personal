@@ -12,6 +12,20 @@ body {
     background-color: #F4F1DE;
 }
 
+/* Enhanced text readability for watermark background */
+h1, h2, h3, h4, h5, h6 {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+p, span, a, li {
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Make body text slightly bolder */
+.font-sans {
+    font-weight: 500;
+}
+
 code {
     font-family:
         source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;

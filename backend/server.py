@@ -197,6 +197,8 @@ class SiteContent(BaseModel):
     facebook_url: str = "https://www.facebook.com/p/Tacos-Things-61575431517600/"
     
 class SiteContentUpdate(BaseModel):
+    hero_title: Optional[str] = None
+    hero_subtitle: Optional[str] = None
     hero_headline: Optional[str] = None
     hero_tagline: Optional[str] = None
     hero_image: Optional[str] = None

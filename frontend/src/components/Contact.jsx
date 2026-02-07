@@ -126,14 +126,14 @@ const Contact = () => {
               {contactInfo.map((info, index) => (
                 <div
                   key={index}
-                  className="bg-white p-5 rounded-2xl shadow-md hover:shadow-lg transition-shadow"
+                  className="bg-white p-5 rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                   data-testid={`contact-info-${index}`}
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-10 h-10 bg-saffron-blaze/10 rounded-full flex items-center justify-center text-saffron-blaze">
                       {info.icon}
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="font-sans text-sm text-deep-char/60 mb-1">
                         {info.title}
                       </p>
@@ -142,12 +142,12 @@ const Contact = () => {
                           href={info.link}
                           target={info.link.startsWith("http") ? "_blank" : "_self"}
                           rel="noopener noreferrer"
-                          className="font-sans text-deep-char hover:text-saffron-blaze transition-colors"
+                          className="font-sans text-deep-char hover:text-saffron-blaze transition-colors break-all"
                         >
                           {info.value}
                         </a>
                       ) : (
-                        <p className="font-sans text-deep-char">{info.value}</p>
+                        <p className="font-sans text-deep-char break-words">{info.value}</p>
                       )}
                     </div>
                   </div>

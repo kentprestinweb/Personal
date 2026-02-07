@@ -160,6 +160,8 @@ class MenuItemUpdate(BaseModel):
 # ----- Site Content Model -----
 class SiteContent(BaseModel):
     # Hero Section
+    hero_title: str = "Clyde North's Best Tacos"
+    hero_subtitle: str = "Taco's & Things"
     hero_headline: str = "Where Indian Spices Meet Mexican Soul"
     hero_tagline: str = "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite."
     hero_image: str = "/taco-truck-hero.png"

@@ -478,6 +478,8 @@ async def admin_export_subscribers(user: dict = Depends(verify_token)):
 
 # Default content
 DEFAULT_CONTENT = {
+    "hero_title": "Clyde North's Best Tacos",
+    "hero_subtitle": "Taco's & Things",
     "hero_headline": "Where Indian Spices Meet Mexican Soul",
     "hero_tagline": "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite.",
     "hero_image": "/taco-truck-hero.png",

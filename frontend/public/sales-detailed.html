@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taco's & Things - Website Sales Package</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background: #fff;
+        }
+        
+        .page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #E07A5F;
+            margin-bottom: 40px;
+        }
+        
+        .logo-text {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+        
+        .logo-text span {
+            color: #E07A5F;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #E07A5F;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 22px;
+            color: #E07A5F;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #F2CC8F;
+        }
+        
+        h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin: 20px 0 10px 0;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            color: #444;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #F4F1DE 0%, #F2CC8F22 100%);
+            border-left: 4px solid #E07A5F;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .highlight-box h3 {
+            margin-top: 0;
+            color: #E07A5F;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .feature-item .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-item h4 {
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+        
+        .feature-item p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #1a1a2e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .check {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        
+        .price-box {
+            background: #1a1a2e;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .price-box h3 {
+            color: #F2CC8F;
+            margin-bottom: 15px;
+        }
+        
+        .price-amount {
+            font-size: 48px;
+            font-weight: bold;
+            color: #E07A5F;
+        }
+        
+        .price-note {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+        
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-label {
+            font-weight: 600;
+        }
+        
+        .comparison-values {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .comparison-values span {
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        .included {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        
+        .savings {
+            background: #22c55e;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        ul {
+            margin: 15px 0 15px 25px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+            color: #444;
+        }
+        
+        .testimonial {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            font-style: italic;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .testimonial::before {
+            content: '"';
+            font-size: 60px;
+            color: #E07A5F;
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            opacity: 0.3;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #E07A5F 0%, #E63946 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .cta-section h2 {
+            color: white;
+            border: none;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+            margin-top: 40px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 12px;
+        }
+        
+        @media print {
+            .page {
+                padding: 20px;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-text">Taco's <span>&</span> Things</div>
+            <div class="subtitle">Complete Restaurant Website Package</div>
+            <div class="badge">🌮 TURNKEY SOLUTION - READY TO USE</div>
+        </div>
+
+        <!-- Introduction -->
+        <h1>Premium Restaurant Website with Full Admin Control</h1>
+        <p>A professionally designed, fully functional website built specifically for <strong>Taco's & Things</strong> restaurant in Clyde North, Victoria. This isn't just a website – it's a complete digital business solution that puts you in full control.</p>
+
+        <div class="highlight-box">
+            <h3>💡 Why This Website is Different</h3>
+            <p style="margin-bottom: 0;"><strong>No coding knowledge required.</strong> Update your menu, change prices, add photos, edit any text on your website – all from an easy-to-use admin dashboard. No more paying developers $50-100 for simple changes.</p>
+        </div>
+
+        <!-- Key Features Grid -->
+        <h2>🎯 What's Included</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="icon">📱</div>
+                <h4>Mobile-First Design</h4>
+                <p>Looks perfect on phones, tablets, and computers</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">🍽️</div>
+                <h4>Menu Management</h4>
+                <p>Add, edit, delete menu items with photos & prices</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">✏️</div>
+                <h4>Content Editor</h4>
+                <p>Change any text, image, or link on the website</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">📧</div>
+                <h4>Email Collection</h4>
+                <p>Capture customer emails & export for marketing</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">⭐</div>
+                <h4>Reviews Display</h4>
+                <p>Showcase 5-star Google reviews</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">🔍</div>
+                <h4>SEO Optimized</h4>
+                <p>Built to rank high on Google searches</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">🛵</div>
+                <h4>Delivery Integration</h4>
+                <p>Direct links to Uber Eats & DoorDash</p>
+            </div>
+            <div class="feature-item">
+                <div class="icon">🔒</div>
+                <h4>Secure Admin</h4>
+                <p>Password-protected dashboard</p>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Details -->
+        <h2>🖥️ Admin Dashboard Features</h2>
+        <p>Control every aspect of your website without touching any code:</p>
+        
+        <h3>Menu Management</h3>
+        <ul>
+            <li><strong>Add new dishes</strong> - Name, description, price, category, photo</li>
+            <li><strong>Upload food photos</strong> - Directly from your phone or computer</li>
+            <li><strong>Mark items as "Sold Out"</strong> - One-click to hide unavailable items</li>
+            <li><strong>Add badges</strong> - Popular, Spicy, Vegetarian labels</li>
+            <li><strong>Edit or delete</strong> - Update anything instantly</li>
+        </ul>
+
+        <h3>Website Content Editor</h3>
+        <ul>
+            <li><strong>Hero section</strong> - Headlines, taglines, background image</li>
+            <li><strong>About section</strong> - Your story and description</li>
+            <li><strong>Gallery</strong> - Add/remove restaurant photos</li>
+            <li><strong>Contact info</strong> - Address, phone, hours, Google Maps</li>
+            <li><strong>Social links</strong> - Facebook, delivery platform URLs</li>
+        </ul>
+
+        <h3>Email Subscriber Management</h3>
+        <ul>
+            <li><strong>View all subscribers</strong> - See who signed up</li>
+            <li><strong>Export to CSV</strong> - Download for Mailchimp, Brevo, etc.</li>
+            <li><strong>Copy all emails</strong> - One-click clipboard copy</li>
+            <li><strong>Remove subscribers</strong> - Manage your list</li>
+        </ul>
+
+        <div class="page-break"></div>
+
+        <!-- Value Comparison -->
+        <h2>💰 Value Comparison</h2>
+        <p>See how this website compares to building from scratch or using other solutions:</p>
+
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>DIY/Templates</th>
+                <th>Agency</th>
+                <th>This Website</th>
+            </tr>
+            <tr>
+                <td>Custom Design</td>
+                <td>$500-1,500</td>
+                <td>$3,000-8,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>Mobile Responsive</td>
+                <td>$300-800</td>
+                <td>$1,000-2,500</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>Menu System</td>
+                <td>$50-100/mo</td>
+                <td>$2,000-5,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>Content Management</td>
+                <td>$30-50/mo</td>
+                <td>$1,500-3,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>SEO Setup</td>
+                <td>$500-1,500</td>
+                <td>$1,000-3,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>Admin Dashboard</td>
+                <td>Not Available</td>
+                <td>$2,000-5,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td>Email Collection</td>
+                <td>$200-500</td>
+                <td>$500-1,000</td>
+                <td class="check">✓ Included</td>
+            </tr>
+            <tr>
+                <td><strong>Monthly Fees</strong></td>
+                <td><strong>$80-150/mo</strong></td>
+                <td><strong>$200-500/mo</strong></td>
+                <td class="check"><strong>$0</strong></td>
+            </tr>
+        </table>
+
+        <div class="highlight-box">
+            <h3>📊 Total Development Value: $12,000 - $25,000</h3>
+            <p style="margin-bottom: 0;">Based on comparable custom restaurant websites with admin dashboards, content management, and email collection features built by professional agencies.</p>
+        </div>
+
+        <!-- Annual Savings -->
+        <h2>📈 Annual Savings</h2>
+        <table>
+            <tr>
+                <th>Expense</th>
+                <th>Typical Cost</th>
+                <th>This Website</th>
+                <th>You Save</th>
+            </tr>
+            <tr>
+                <td>Website Platform (Wix/Squarespace)</td>
+                <td>$360-600/year</td>
+                <td>$0</td>
+                <td><span class="savings">$360-600</span></td>
+            </tr>
+            <tr>
+                <td>Menu Updates (4x/year)</td>
+                <td>$200-400/year</td>
+                <td>$0 (DIY)</td>
+                <td><span class="savings">$200-400</span></td>
+            </tr>
+            <tr>
+                <td>Content Changes (6x/year)</td>
+                <td>$300-600/year</td>
+                <td>$0 (DIY)</td>
+                <td><span class="savings">$300-600</span></td>
+            </tr>
+            <tr>
+                <td>Developer Retainer</td>
+                <td>$1,200-2,400/year</td>
+                <td>$0</td>
+                <td><span class="savings">$1,200-2,400</span></td>
+            </tr>
+            <tr>
+                <td><strong>Total Annual Savings</strong></td>
+                <td></td>
+                <td></td>
+                <td><strong style="color: #22c55e;">$2,060 - $4,000/year</strong></td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- SEO Benefits -->
+        <h2>🔍 SEO & Google Visibility</h2>
+        <p>This website is built to rank on Google for local searches:</p>
+        
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h4>✅ Local SEO Tags</h4>
+                <p>Geographic meta tags for Clyde North, Victoria</p>
+            </div>
+            <div class="feature-item">
+                <h4>✅ Schema Markup</h4>
+                <p>Restaurant structured data for rich results</p>
+            </div>
+            <div class="feature-item">
+                <h4>✅ Meta Descriptions</h4>
+                <p>Optimized for "tacos near me" searches</p>
+            </div>
+            <div class="feature-item">
+                <h4>✅ Mobile Optimized</h4>
+                <p>Google prioritizes mobile-friendly sites</p>
+            </div>
+        </div>
+
+        <p><strong>Target Keywords Already Optimized:</strong></p>
+        <ul>
+            <li>"Tacos Clyde North"</li>
+            <li>"Mexican food near me" (Clyde North area)</li>
+            <li>"Indian Mexican fusion Melbourne"</li>
+            <li>"Best tacos Victoria"</li>
+            <li>"Halal tacos Melbourne"</li>
+        </ul>
+
+        <!-- What You Get -->
+        <h2>📦 Complete Package Includes</h2>
+        <ul>
+            <li>✅ <strong>Full website ownership</strong> - No recurring license fees</li>
+            <li>✅ <strong>Admin dashboard access</strong> - Username & password</li>
+            <li>✅ <strong>All website files</strong> - Complete codebase</li>
+            <li>✅ <strong>Database with content</strong> - 85+ menu items ready</li>
+            <li>✅ <strong>Customer email list</strong> - Existing subscribers included</li>
+            <li>✅ <strong>All uploaded images</strong> - Food photos, gallery images</li>
+            <li>✅ <strong>Documentation</strong> - How to use every feature</li>
+            <li>✅ <strong>Credential change guide</strong> - Secure your own login</li>
+        </ul>
+
+        <!-- Optional Add-ons -->
+        <h2>🎁 Optional Add-Ons</h2>
+        <table>
+            <tr>
+                <th>Add-On</th>
+                <th>Description</th>
+                <th>Price</th>
+            </tr>
+            <tr>
+                <td>Training Session</td>
+                <td>1-hour video call walkthrough of all features</td>
+                <td>+$200</td>
+            </tr>
+            <tr>
+                <td>30-Day Support</td>
+                <td>Email support for questions after purchase</td>
+                <td>+$300</td>
+            </tr>
+            <tr>
+                <td>Custom Domain Setup</td>
+                <td>Help connecting to your domain name</td>
+                <td>+$100</td>
+            </tr>
+            <tr>
+                <td>Email Marketing Setup</td>
+                <td>Connect to Mailchimp/Brevo with templates</td>
+                <td>+$400</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Pricing -->
+        <div class="price-box">
+            <h3>Investment Options</h3>
+            <table style="color: white; margin: 20px 0;">
+                <tr style="background: transparent;">
+                    <td style="border-color: #444; color: #aaa;">Basic Package</td>
+                    <td style="border-color: #444; color: white; font-size: 24px;">$3,500 - $5,000</td>
+                </tr>
+                <tr style="background: transparent;">
+                    <td style="border-color: #444; color: #aaa;">Standard Package (Recommended)</td>
+                    <td style="border-color: #444; color: #E07A5F; font-size: 24px; font-weight: bold;">$5,500 - $7,500</td>
+                </tr>
+                <tr style="background: transparent;">
+                    <td style="border-color: #444; color: #aaa;">Premium Package (with training & support)</td>
+                    <td style="border-color: #444; color: white; font-size: 24px;">$8,000 - $10,000</td>
+                </tr>
+            </table>
+            <p class="price-note">One-time payment • No monthly fees • Full ownership</p>
+        </div>
+
+        <!-- Why Buy This -->
+        <h2>🤔 Why Buy vs Build?</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h4>⏱️ Save 2-3 Months</h4>
+                <p>Website is ready to use today, not months of development</p>
+            </div>
+            <div class="feature-item">
+                <h4>💵 Save $10,000+</h4>
+                <p>Custom development would cost significantly more</p>
+            </div>
+            <div class="feature-item">
+                <h4>🎯 Proven Design</h4>
+                <p>Already optimized for restaurant conversions</p>
+            </div>
+            <div class="feature-item">
+                <h4>🔧 No Tech Skills</h4>
+                <p>Everything managed through simple dashboard</p>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <h2>❓ Frequently Asked Questions</h2>
+        
+        <h3>Can I change the restaurant name and branding?</h3>
+        <p>Yes! Everything is editable through the admin dashboard - logo, name, colors, all content.</p>
+
+        <h3>Do I need technical knowledge?</h3>
+        <p>No. The admin dashboard is designed for non-technical users. If you can use Facebook, you can manage this website.</p>
+
+        <h3>What about hosting?</h3>
+        <p>You'll need web hosting (approximately $10-30/month). We can recommend providers or help set it up as an add-on.</p>
+
+        <h3>Can I add more features later?</h3>
+        <p>Yes. The website is built on modern technology (React, FastAPI) that any developer can extend.</p>
+
+        <h3>Is the code included?</h3>
+        <p>Yes, you receive the complete source code with full ownership rights.</p>
+
+        <!-- Call to Action -->
+        <div class="cta-section">
+            <h2>Ready to Get Started?</h2>
+            <p>Take control of your restaurant's online presence today.</p>
+            <div class="contact-info">
+                <p>📧 Contact for details and live demo</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>This document was prepared for the sale of Taco's & Things restaurant website.</p>
+            <p>All features described are fully functional and ready for immediate use.</p>
+        </div>
+    </div>
+</body>
+</html>

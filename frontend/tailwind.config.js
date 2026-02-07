@@ -19,7 +19,7 @@ module.exports = {
                 colors: {
                         'saffron-blaze': '#E07A5F',
                         'maize-gold': '#F2CC8F',
-                        'deep-char': '#3D405B',
+                        'deep-char': '#1a1a2e',
                         'cream-paper': '#F4F1DE',
                         'chili-red': '#E63946',
                         'guacamole-green': '#81B29A',

@@ -33,9 +33,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <h3 className="text-3xl font-serif text-cream-paper mb-4">
-              Taco's <span className="text-saffron-blaze">&</span> Things
-            </h3>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/7kfqr9np_Logo.jpg"
+              alt="Taco's & Things Logo"
+              className="h-20 w-auto rounded-lg mb-4"
+            />
             <p className="font-sans text-cream-paper/70 mb-6 leading-relaxed">
               {content.footer_description}
             </p>

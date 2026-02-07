@@ -43,11 +43,21 @@ const Hero = () => {
 
             {/* Main Heading */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif text-deep-char leading-tight mb-4">
-              Clyde North's
-              <br />
-              <span className="text-saffron-blaze">Best Tacos</span>
+              {content.hero_title ? (
+                <>
+                  {content.hero_title.split(' ').slice(0, -2).join(' ')}
+                  <br />
+                  <span className="text-saffron-blaze">{content.hero_title.split(' ').slice(-2).join(' ')}</span>
+                </>
+              ) : (
+                <>
+                  Clyde North's
+                  <br />
+                  <span className="text-saffron-blaze">Best Tacos</span>
+                </>
+              )}
             </h1>
-            <p className="font-serif text-2xl text-deep-char/80 mb-4">Taco's & Things</p>
+            <p className="font-serif text-2xl text-deep-char/80 mb-4">{content.hero_subtitle || "Taco's & Things"}</p>
 
             {/* Subheading - Dynamic */}
             <p className="text-lg md:text-xl text-deep-char/70 font-sans leading-relaxed mb-8 max-w-lg">

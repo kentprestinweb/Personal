@@ -69,21 +69,22 @@ const Newsletter = () => {
             onSubmit={handleSubmit}
             className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
           >
-            <div className="flex-1 relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-deep-char/50" />
+            <div className="flex-1 relative min-w-0">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-deep-char/50 z-10" />
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-full bg-cream-paper text-deep-char border-0 focus:ring-2 focus:ring-saffron-blaze"
+                className="w-full pl-12 pr-4 py-4 rounded-full bg-cream-paper text-deep-char border-0 focus:ring-2 focus:ring-saffron-blaze overflow-hidden text-ellipsis"
+                style={{ textOverflow: 'ellipsis' }}
                 data-testid="newsletter-email-input"
               />
             </div>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-saffron-blaze text-white px-8 py-4 rounded-full font-bold hover:bg-chili-red transition-all disabled:opacity-50"
+              className="bg-saffron-blaze text-white px-8 py-4 rounded-full font-bold hover:bg-chili-red transition-all disabled:opacity-50 flex-shrink-0"
               data-testid="newsletter-submit-btn"
             >
               {loading ? (

@@ -20,8 +20,10 @@ import {
   Upload,
   Link,
   FileText,
+  Users,
 } from "lucide-react";
 import ContentManager from "./ContentManager";
+import SubscribersManager from "./SubscribersManager";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

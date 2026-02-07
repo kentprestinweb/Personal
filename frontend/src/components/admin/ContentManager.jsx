@@ -225,12 +225,6 @@ const ContentManager = ({ onClose }) => {
               placeholder="Taco's & Things"
             />
             <InputField
-              label="Main Headline"
-              value={content.hero_headline}
-              onChange={(v) => updateField("hero_headline", v)}
-              placeholder="Where Indian Spices Meet Mexican Soul"
-            />
-            <InputField
               label="Tagline"
               value={content.hero_tagline}
               onChange={(v) => updateField("hero_tagline", v)}

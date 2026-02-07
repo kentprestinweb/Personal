@@ -834,6 +834,11 @@ const AdminDashboard = () => {
       {showContentManager && (
         <ContentManager onClose={() => setShowContentManager(false)} />
       )}
+
+      {/* Subscribers Manager Modal */}
+      {showSubscribers && (
+        <SubscribersManager onClose={() => setShowSubscribers(false)} />
+      )}
     </div>
   );
 };

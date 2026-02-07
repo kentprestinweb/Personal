@@ -55,7 +55,7 @@ const Navbar = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_spicytacos-1/artifacts/3ummgx28_tacos%26things%20logo.jpg" 
               alt="Taco's & Things Logo" 
-              className="h-16 md:h-20 lg:h-24 w-auto object-contain"
+              className="h-20 md:h-24 lg:h-28 w-auto object-contain"
             />
           </a>
 

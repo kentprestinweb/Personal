@@ -447,6 +447,29 @@ async def admin_upload_file(file: UploadFile = File(...), user: dict = Depends(v
     # Return the URL path
     return {"url": f"/api/uploads/{filename}", "filename": filename}
 
+# ----- Newsletter Subscribers Management -----
+
+@api_router.get("/admin/subscribers")
+async def admin_get_subscribers(user: dict = Depends(verify_token)):
+    subscribers = await db.newsletter.find({}, {"_id": 0}).to_list(1000)
+    return subscribers
+
+@api_router.delete("/admin/subscribers/{email}")
+async def admin_delete_subscriber(email: str, user: dict = Depends(verify_token)):
+    result = await db.newsletter.delete_one({"email": email})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Subscriber not found")
+    return {"message": "Subscriber deleted"}
+
+@api_router.get("/admin/subscribers/export")
+async def admin_export_subscribers(user: dict = Depends(verify_token)):
+    subscribers = await db.newsletter.find({}, {"_id": 0}).to_list(1000)
+    # Return as CSV-ready format
+    csv_data = "email,subscribed_at\n"
+    for sub in subscribers:
+        csv_data += f"{sub.get('email', '')},{sub.get('subscribed_at', '')}\n"
+    return {"csv": csv_data, "count": len(subscribers)}
+
 # ----- Site Content Endpoints -----
 
 # Default content

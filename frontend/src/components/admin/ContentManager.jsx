@@ -213,6 +213,18 @@ const ContentManager = ({ onClose }) => {
           {/* Hero Section */}
           <Section id="hero" title="Hero Section" icon={Image}>
             <InputField
+              label="Hero Title (Big Text)"
+              value={content.hero_title}
+              onChange={(v) => updateField("hero_title", v)}
+              placeholder="Clyde North's Best Tacos"
+            />
+            <InputField
+              label="Hero Subtitle (Below Title)"
+              value={content.hero_subtitle}
+              onChange={(v) => updateField("hero_subtitle", v)}
+              placeholder="Taco's & Things"
+            />
+            <InputField
               label="Main Headline"
               value={content.hero_headline}
               onChange={(v) => updateField("hero_headline", v)}

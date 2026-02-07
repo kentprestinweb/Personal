@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Mail, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { toast } from "sonner";
 import axios from "axios";
 

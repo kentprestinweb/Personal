@@ -46,24 +46,32 @@ export function LogoSquare({ className = "w-20 h-20", showText = false }) {
           <stop offset="50%" stopColor="#3b82f6" />
           <stop offset="100%" stopColor="#f97316" />
         </linearGradient>
-        <linearGradient id="gradientBgSubtle" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#f97316" stopOpacity="0.15" />
+        <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#14b8a6" />
+          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#f97316" />
         </linearGradient>
       </defs>
       
-      {/* Background with gradient */}
+      {/* Background with gradient border */}
       <rect x="4" y="4" width="120" height="120" rx="24" fill="url(#gradientBg)" />
       
       {/* Inner background */}
       <rect x="8" y="8" width="112" height="112" rx="20" fill="#0a0a0a" />
       
-      {/* Code brackets */}
-      <path d="M36 44L24 64L36 84" stroke="#14b8a6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-      <path d="M92 44L104 64L92 84" stroke="#f97316" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+      {/* Code brackets - positioned for KAP */}
+      <path d="M20 44L10 64L20 84" stroke="#14b8a6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
+      <path d="M108 44L118 64L108 84" stroke="#f97316" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" />
       
-      {/* K letter */}
-      <path d="M52 48V80H58V66L72 80H80L62 64L78 48H70L58 60V48H52Z" fill="white" />
+      {/* KAP letters */}
+      {/* K */}
+      <path d="M32 48V80H38V66L50 80H58L42 64L56 48H48L38 60V48H32Z" fill="white" />
+      
+      {/* A */}
+      <path d="M58 80L72 48H78L92 80H86L83 72H67L64 80H58ZM69 66H81L75 52L69 66Z" fill="white" />
+      
+      {/* P */}
+      <path d="M94 48V80H100V68H108C114 68 118 64 118 58C118 52 114 48 108 48H94ZM100 54H106C110 54 112 56 112 58C112 60 110 62 106 62H100V54Z" fill="white" opacity="0" />
       
       {showText && (
         <>

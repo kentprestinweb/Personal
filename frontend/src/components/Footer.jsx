@@ -1,8 +1,7 @@
 import React from 'react';
 import { useContent } from '../context/ContentContext';
 import { Heart } from 'lucide-react';
-
-const LOGO_HORIZONTAL = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/f2ny4osy_kap-horizontal-logo.png';
+import { LogoFooter } from './Logo';
 
 export default function Footer() {
   const { content } = useContent();

@@ -1,8 +1,7 @@
 import React from 'react';
 import { useContent } from '../context/ContentContext';
 import { ArrowDown, Code, Sparkles } from 'lucide-react';
-
-const LOGO_SQUARE = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/49lgwxck_kap-logo-square-128.png';
+import { LogoSquare } from './Logo';
 
 export default function Hero() {
   const { content, loading } = useContent();

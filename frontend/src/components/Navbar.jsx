@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-
-const LOGO_HORIZONTAL = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/f2ny4osy_kap-horizontal-logo.png';
+import { LogoNavbar } from './Logo';
 
 const navLinks = [
   { name: 'Home', href: '#home' },

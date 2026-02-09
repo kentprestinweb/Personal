@@ -101,12 +101,8 @@ export default function Hero() {
               <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-electric-blue-500 to-coral-500 rounded-3xl blur-2xl opacity-30 scale-110" />
               
               {/* Logo container */}
-              <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-3xl p-12">
-                <img 
-                  src={content.hero_image || LOGO_SQUARE} 
-                  alt="Kent Angelo Prestin" 
-                  className="w-64 h-64 object-contain"
-                />
+              <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-3xl p-8">
+                <LogoSquare className="w-64 h-64" />
               </div>
             </div>
           </div>

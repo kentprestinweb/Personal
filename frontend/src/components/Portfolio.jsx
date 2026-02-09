@@ -116,6 +116,48 @@ export default function Portfolio() {
               </div>
             </div>
           ))}
+
+          {/* Coming Soon Card */}
+          {showComingSoon && (
+            <div className="group bg-gradient-to-br from-dark-100 to-dark-50 rounded-2xl border-2 border-dashed border-dark-200 overflow-hidden hover:border-teal-300 transition-all duration-500">
+              {/* Decorative Top */}
+              <div className="relative h-56 bg-gradient-to-br from-teal-500/10 via-electric-blue-500/10 to-coral-500/10 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-teal-500/20 to-electric-blue-500/20 rounded-2xl flex items-center justify-center">
+                    <Rocket size={40} className="text-teal-500" />
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Sparkles size={16} className="text-coral-400" />
+                    <span className="text-dark-400 text-sm font-medium">In Progress</span>
+                    <Sparkles size={16} className="text-coral-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-dark-700 mb-2">
+                  More Projects Coming Soon
+                </h3>
+                <p className="text-dark-400 text-sm mb-4">
+                  Exciting new projects are in the works! Stay tuned for more innovative web solutions.
+                </p>
+                
+                {/* Decorative Tags */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <span className="px-3 py-1 bg-teal-100 text-teal-600 text-xs rounded-full">
+                    E-Commerce
+                  </span>
+                  <span className="px-3 py-1 bg-electric-blue-100 text-electric-blue-600 text-xs rounded-full">
+                    Web Apps
+                  </span>
+                  <span className="px-3 py-1 bg-coral-100 text-coral-600 text-xs rounded-full">
+                    Landing Pages
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Empty state */}

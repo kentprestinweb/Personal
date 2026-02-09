@@ -1,244 +1,245 @@
-import { useState } from "react";
-import { MapPin, Phone, Clock, Mail, Send } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { toast } from "sonner";
-import axios from "axios";
-import { useContent } from "../context/ContentContext";
+import React, { useState } from 'react';
+import { useContent } from '../context/ContentContext';
+import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Contact = () => {
-  const { content, loading: contentLoading } = useContent();
+export default function Contact() {
+  const { content, loading, BACKEND_URL } = useContent();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
   });
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+    setSubmitting(true);
+    setStatus({ type: '', message: '' });
 
-    setLoading(true);
     try {
-      await axios.post(`${API}/contact`, formData);
-      toast.success("Message sent successfully!", {
-        description: "We'll get back to you soon.",
+      const response = await fetch(`${BACKEND_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
-      setFormData({ name: "", email: "", phone: "", message: "" });
+
+      if (response.ok) {
+        setStatus({ type: 'success', message: 'Message sent successfully! I\'ll get back to you soon.' });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        throw new Error('Failed to send message');
+      }
     } catch (error) {
-      toast.error("Failed to send message. Please try again.");
+      setStatus({ type: 'error', message: 'Something went wrong. Please try again.' });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (contentLoading || !content) {
-    return <section id="contact" className="py-20 md:py-32" />;
+  if (loading || !content) {
+    return (
+      <section id="contact" className="section-padding bg-dark-950">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-dark-800 rounded w-1/4 mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
-  const contactInfo = [
-    {
-      icon: <MapPin className="w-5 h-5" />,
-      title: "Address",
-      value: content.contact_address,
-      link: `https://www.google.com/maps/search/${encodeURIComponent(content.contact_address)}`,
-    },
-    {
-      icon: <Phone className="w-5 h-5" />,
-      title: "Phone",
-      value: content.contact_phone,
-      link: `tel:${content.contact_phone.replace(/\s/g, '')}`,
-    },
-    {
-      icon: <Clock className="w-5 h-5" />,
-      title: "Hours",
-      value: content.contact_hours,
-      link: null,
-    },
-    {
-      icon: <Mail className="w-5 h-5" />,
-      title: "Email",
-      value: content.contact_email,
-      link: `mailto:${content.contact_email}`,
-    },
-  ];
-
   return (
-    <section
-      id="contact"
-      className="py-20 md:py-32 bg-gradient-to-br from-cream-paper to-maize-gold/20"
-      data-testid="contact-section"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="section-padding bg-dark-950 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-teal-500/10 via-electric-blue-500/10 to-coral-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <span className="inline-block font-sans text-saffron-blaze font-bold uppercase tracking-wider mb-4">
-            {content.contact_label}
+        <div className="text-center mb-16">
+          <span className="inline-block px-4 py-1.5 bg-teal-500/20 text-teal-400 text-sm font-medium rounded-full mb-4">
+            {content.contact_label || 'Get In Touch'}
           </span>
-          <h2 className="text-4xl md:text-5xl font-serif text-deep-char mb-4">
-            {content.contact_headline}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            {content.contact_headline || "Let's Work Together"}
           </h2>
-          <p className="font-sans text-lg text-deep-char/70 max-w-2xl mx-auto">
-            We'd love to hear from you! Drop by for a meal or send us a message
-            for catering inquiries and feedback.
+          <p className="text-dark-400 max-w-2xl mx-auto">
+            {content.contact_description || 'Have a project in mind? Get in touch!'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left - Map & Info */}
-          <div>
-            {/* Map */}
-            <div className="rounded-3xl overflow-hidden shadow-lg mb-8 h-[300px]">
-              {content.contact_map_embed ? (
-                <iframe
-                  src={content.contact_map_embed}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Tacos & Things Location"
-                  data-testid="google-map"
-                ></iframe>
-              ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-deep-char/50">
-                  Map not configured
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Contact Info */}
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-6">Contact Information</h3>
+              <p className="text-dark-400 mb-8">
+                Feel free to reach out through the form or via the contact details below.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {content.contact_email && (
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center">
+                    <Mail className="text-teal-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-dark-500 text-sm">Email</p>
+                    <a href={`mailto:${content.contact_email}`} className="text-white hover:text-teal-400 transition-colors">
+                      {content.contact_email}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {content.contact_phone && (
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-electric-blue-500/20 rounded-xl flex items-center justify-center">
+                    <Phone className="text-electric-blue-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-dark-500 text-sm">Phone</p>
+                    <a href={`tel:${content.contact_phone}`} className="text-white hover:text-electric-blue-400 transition-colors">
+                      {content.contact_phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {content.contact_location && (
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-coral-500/20 rounded-xl flex items-center justify-center">
+                    <MapPin className="text-coral-400" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-dark-500 text-sm">Location</p>
+                    <p className="text-white">{content.contact_location}</p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Contact Info Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {contactInfo.map((info, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-5 rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden"
-                  data-testid={`contact-info-${index}`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-saffron-blaze/10 rounded-full flex items-center justify-center text-saffron-blaze">
-                      {info.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-sans text-sm text-deep-char/60 mb-1">
-                        {info.title}
-                      </p>
-                      {info.link ? (
-                        <a
-                          href={info.link}
-                          target={info.link.startsWith("http") ? "_blank" : "_self"}
-                          rel="noopener noreferrer"
-                          className="font-sans text-deep-char hover:text-saffron-blaze transition-colors break-all"
-                        >
-                          {info.value}
-                        </a>
-                      ) : (
-                        <p className="font-sans text-deep-char break-words">{info.value}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            {/* Social Links */}
+            <div className="pt-8 border-t border-dark-800">
+              <p className="text-dark-500 text-sm mb-4">Follow me on social media</p>
+              <div className="flex gap-4">
+                {content.linkedin_url && (
+                  <a href={content.linkedin_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-dark-800 hover:bg-teal-500 rounded-lg flex items-center justify-center transition-colors">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                  </a>
+                )}
+                {content.github_url && (
+                  <a href={content.github_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-dark-800 hover:bg-dark-700 rounded-lg flex items-center justify-center transition-colors">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                  </a>
+                )}
+                {content.twitter_url && (
+                  <a href={content.twitter_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-dark-800 hover:bg-electric-blue-500 rounded-lg flex items-center justify-center transition-colors">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right - Contact Form */}
-          <div className="bg-white p-8 rounded-3xl shadow-lg">
-            <h3 className="font-serif text-2xl text-deep-char mb-6">
-              Send Us a Message
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Contact Form */}
+          <div className="bg-dark-900/50 backdrop-blur-sm border border-dark-800 rounded-2xl p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="font-sans text-sm text-deep-char/70 mb-2 block">
-                    Name *
-                  </label>
-                  <Input
+                  <label htmlFor="name" className="block text-sm font-medium text-dark-300 mb-2">Name</label>
+                  <input
+                    type="text"
+                    id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500 transition-colors"
                     placeholder="Your name"
-                    className="w-full px-4 py-3 rounded-xl border-2 border-maize-gold/30 focus:border-saffron-blaze"
-                    data-testid="contact-name-input"
                   />
                 </div>
                 <div>
-                  <label className="font-sans text-sm text-deep-char/70 mb-2 block">
-                    Email *
-                  </label>
-                  <Input
-                    name="email"
+                  <label htmlFor="email" className="block text-sm font-medium text-dark-300 mb-2">Email</label>
+                  <input
                     type="email"
+                    id="email"
+                    name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500 transition-colors"
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 rounded-xl border-2 border-maize-gold/30 focus:border-saffron-blaze"
-                    data-testid="contact-email-input"
                   />
                 </div>
               </div>
+
               <div>
-                <label className="font-sans text-sm text-deep-char/70 mb-2 block">
-                  Phone (optional)
-                </label>
-                <Input
-                  name="phone"
-                  value={formData.phone}
+                <label htmlFor="subject" className="block text-sm font-medium text-dark-300 mb-2">Subject</label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
                   onChange={handleChange}
-                  placeholder="Your phone number"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-maize-gold/30 focus:border-saffron-blaze"
-                  data-testid="contact-phone-input"
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500 transition-colors"
+                  placeholder="Project inquiry"
                 />
               </div>
+
               <div>
-                <label className="font-sans text-sm text-deep-char/70 mb-2 block">
-                  Message *
-                </label>
-                <Textarea
+                <label htmlFor="message" className="block text-sm font-medium text-dark-300 mb-2">Message</label>
+                <textarea
+                  id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder="How can we help you?"
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-maize-gold/30 focus:border-saffron-blaze resize-none"
-                  data-testid="contact-message-input"
+                  required
+                  rows={5}
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500 transition-colors resize-none"
+                  placeholder="Tell me about your project..."
                 />
               </div>
-              <Button
+
+              {/* Status Message */}
+              {status.message && (
+                <div className={`flex items-center gap-2 p-4 rounded-xl ${
+                  status.type === 'success' ? 'bg-teal-500/20 text-teal-400' : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {status.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                  {status.message}
+                </div>
+              )}
+
+              <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-saffron-blaze text-white py-4 rounded-full font-bold hover:bg-chili-red transition-all flex items-center justify-center gap-2"
-                data-testid="contact-submit-btn"
+                disabled={submitting}
+                className="w-full px-8 py-4 bg-gradient-to-r from-teal-500 to-electric-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
-                  <span className="spinner w-5 h-5 border-white"></span>
+                {submitting ? (
+                  <span>Sending...</span>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Send size={18} />
                     Send Message
                   </>
                 )}
-              </Button>
+              </button>
             </form>
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default Contact;
+}

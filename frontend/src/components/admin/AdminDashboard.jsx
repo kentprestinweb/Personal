@@ -1,190 +1,467 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Plus,
-  Search,
-  Edit2,
-  Trash2,
-  LogOut,
-  Settings,
-  X,
-  Check,
-  Image,
-  Flame,
-  Leaf,
-  Star,
-  Ban,
-  ChevronDown,
-  Menu,
-  Upload,
-  Link,
+  LayoutDashboard,
+  Briefcase,
   FileText,
+  Star,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  Save,
+  Mail,
+  Code,
   Users,
-} from "lucide-react";
-import ContentManager from "./ContentManager";
-import SubscribersManager from "./SubscribersManager";
+  MessageSquare
+} from 'lucide-react';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const LOGO_HORIZONTAL = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/f2ny4osy_kap-horizontal-logo.png';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-const AdminDashboard = () => {
-  const [menuItems, setMenuItems] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showContentManager, setShowContentManager] = useState(false);
-  const [showSubscribers, setShowSubscribers] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "most-ordered",
-    image_url: "",
-    is_vegetarian: false,
-    is_spicy: false,
-    is_popular: false,
-  });
-  const [settingsData, setSettingsData] = useState({
-    current_password: "",
-    new_username: "",
-    new_password: "",
-  });
-  const [message, setMessage] = useState({ type: "", text: "" });
-  const [imageInputType, setImageInputType] = useState("url"); // "url" or "file"
-  const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState("");
-  const fileInputRef = useRef(null);
+export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const getAuthHeaders = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
-  });
+  // Data states
+  const [content, setContent] = useState(null);
+  const [portfolio, setPortfolio] = useState([]);
+  const [services, setServices] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  useEffect(() => {
-    verifyAndFetch();
-  }, []);
+  const token = localStorage.getItem('admin_token');
 
-  const verifyAndFetch = async () => {
-    try {
-      await axios.get(`${API}/admin/verify`, getAuthHeaders());
-      await fetchData();
-    } catch {
-      localStorage.removeItem("adminToken");
-      navigate("/admin");
+  const verifyAuth = useCallback(async () => {
+    if (!token) {
+      navigate('/admin');
+      return;
     }
-  };
 
-  const fetchData = async () => {
     try {
-      const [menuRes, catRes] = await Promise.all([
-        axios.get(`${API}/admin/menu`, getAuthHeaders()),
-        axios.get(`${API}/admin/categories`, getAuthHeaders()),
-      ]);
-      setMenuItems(menuRes.data);
-      setCategories(catRes.data);
+      const response = await fetch(`${BACKEND_URL}/api/admin/verify`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        localStorage.removeItem('admin_token');
+        navigate('/admin');
+      }
     } catch (err) {
-      showMessage("error", "Failed to fetch data");
+      navigate('/admin');
+    }
+  }, [token, navigate]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const [statsRes, contentRes, portfolioRes, servicesRes, testimonialsRes, skillsRes, messagesRes] = await Promise.all([
+        fetch(`${BACKEND_URL}/api/admin/stats`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/content`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/portfolio`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/services`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/testimonials`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/skills`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/messages`, { headers })
+      ]);
+
+      if (statsRes.ok) setStats(await statsRes.json());
+      if (contentRes.ok) setContent(await contentRes.json());
+      if (portfolioRes.ok) setPortfolio(await portfolioRes.json());
+      if (servicesRes.ok) setServices(await servicesRes.json());
+      if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json());
+      if (skillsRes.ok) setSkills(await skillsRes.json());
+      if (messagesRes.ok) setMessages(await messagesRes.json());
+    } catch (err) {
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
-  };
+  useEffect(() => {
+    verifyAuth();
+    fetchData();
+  }, [verifyAuth, fetchData]);
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${API}/admin/logout`, {}, getAuthHeaders());
-    } catch {}
-    localStorage.removeItem("adminToken");
-    navigate("/admin");
+      await fetch(`${BACKEND_URL}/api/admin/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem('admin_token');
+      navigate('/admin');
+    }
   };
 
-  const openAddModal = () => {
-    setEditingItem(null);
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      category: "most-ordered",
-      image_url: "",
-      is_vegetarian: false,
-      is_spicy: false,
-      is_popular: false,
-    });
-    setImageInputType("url");
-    setImagePreview("");
-    setShowModal(true);
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'content', label: 'Content', icon: FileText },
+    { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
+    { id: 'services', label: 'Services', icon: Code },
+    { id: 'testimonials', label: 'Testimonials', icon: Star },
+    { id: 'skills', label: 'Skills', icon: Users },
+    { id: 'messages', label: 'Messages', icon: MessageSquare },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  return (
+    <div className="min-h-screen bg-dark-950 flex">
+      {/* Sidebar */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-900 border-r border-dark-800 transform transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="p-6 border-b border-dark-800">
+            <img 
+              src={LOGO_HORIZONTAL} 
+              alt="KAP Logo" 
+              className="h-10 w-auto brightness-0 invert"
+            />
+          </div>
+
+          {/* Menu */}
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                  activeTab === item.id
+                    ? 'bg-teal-500/20 text-teal-400'
+                    : 'text-dark-400 hover:text-white hover:bg-dark-800'
+                }`}
+              >
+                <item.icon size={20} />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Logout */}
+          <div className="p-4 border-t border-dark-800">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 text-dark-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+            >
+              <LogOut size={20} />
+              Logout
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Header */}
+        <header className="bg-dark-900 border-b border-dark-800 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 text-dark-400 hover:text-white"
+            >
+              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            <h1 className="text-xl font-semibold text-white capitalize">
+              {activeTab === 'dashboard' ? 'Dashboard Overview' : activeTab}
+            </h1>
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 text-sm text-teal-400 hover:text-teal-300 transition-colors"
+            >
+              View Site →
+            </a>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && <DashboardTab stats={stats} messages={messages} />}
+              {activeTab === 'content' && <ContentTab content={content} token={token} onUpdate={fetchData} />}
+              {activeTab === 'portfolio' && <PortfolioTab portfolio={portfolio} token={token} onUpdate={fetchData} />}
+              {activeTab === 'services' && <ServicesTab services={services} token={token} onUpdate={fetchData} />}
+              {activeTab === 'testimonials' && <TestimonialsTab testimonials={testimonials} token={token} onUpdate={fetchData} />}
+              {activeTab === 'skills' && <SkillsTab skills={skills} token={token} onUpdate={fetchData} />}
+              {activeTab === 'messages' && <MessagesTab messages={messages} token={token} onUpdate={fetchData} />}
+              {activeTab === 'settings' && <SettingsTab token={token} />}
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 lg:hidden z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Dashboard Tab
+function DashboardTab({ stats, messages }) {
+  const statCards = [
+    { label: 'Portfolio Projects', value: stats?.portfolio || 0, icon: Briefcase, color: 'teal' },
+    { label: 'Services', value: stats?.services || 0, icon: Code, color: 'electric-blue' },
+    { label: 'Testimonials', value: stats?.testimonials || 0, icon: Star, color: 'coral' },
+    { label: 'Messages', value: stats?.messages || 0, icon: Mail, color: 'teal' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat, index) => (
+          <div key={index} className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-12 h-12 bg-${stat.color}-500/20 rounded-xl flex items-center justify-center`}>
+                <stat.icon className={`text-${stat.color}-400`} size={24} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
+            <p className="text-dark-400 text-sm">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent Messages */}
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Recent Messages</h3>
+        {messages?.length > 0 ? (
+          <div className="space-y-4">
+            {messages.slice(0, 5).map((msg) => (
+              <div key={msg.id} className="flex items-start gap-4 p-4 bg-dark-800/50 rounded-xl">
+                <div className="w-10 h-10 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-teal-400 font-semibold">{msg.name[0]}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-medium truncate">{msg.name}</p>
+                  <p className="text-dark-400 text-sm truncate">{msg.email}</p>
+                  <p className="text-dark-300 text-sm mt-1 line-clamp-2">{msg.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-dark-400 text-center py-8">No messages yet</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Content Tab
+function ContentTab({ content, token, onUpdate }) {
+  const [formData, setFormData] = useState(content || {});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (content) setFormData(content);
+  }, [content]);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const openEditModal = (item) => {
-    setEditingItem(item);
-    setFormData({
-      name: item.name,
-      description: item.description,
-      price: item.price.toString(),
-      category: item.category,
-      image_url: item.image_url || "",
-      is_vegetarian: item.is_vegetarian,
-      is_spicy: item.is_spicy,
-      is_popular: item.is_popular,
-    });
-    setImageInputType("url");
-    setImagePreview(item.image_url || "");
-    setShowModal(true);
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        setMessage('Content saved successfully!');
+        onUpdate();
+      } else {
+        setMessage('Failed to save content');
+      }
+    } catch (err) {
+      setMessage('Error saving content');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sections = [
+    {
+      title: 'Hero Section',
+      fields: [
+        { name: 'hero_name', label: 'Name', type: 'text' },
+        { name: 'hero_title', label: 'Title', type: 'text' },
+        { name: 'hero_subtitle', label: 'Subtitle', type: 'text' },
+        { name: 'hero_tagline', label: 'Tagline', type: 'textarea' },
+        { name: 'hero_cta_text', label: 'CTA Button Text', type: 'text' },
+        { name: 'hero_cta_url', label: 'CTA Button URL', type: 'text' },
+      ]
+    },
+    {
+      title: 'About Section',
+      fields: [
+        { name: 'about_label', label: 'Section Label', type: 'text' },
+        { name: 'about_headline', label: 'Headline', type: 'text' },
+        { name: 'about_bio', label: 'Bio Paragraph 1', type: 'textarea' },
+        { name: 'about_bio_2', label: 'Bio Paragraph 2', type: 'textarea' },
+        { name: 'about_years_experience', label: 'Years Experience', type: 'text' },
+        { name: 'about_projects_completed', label: 'Projects Completed', type: 'text' },
+        { name: 'about_clients_satisfied', label: 'Happy Clients', type: 'text' },
+      ]
+    },
+    {
+      title: 'Contact Section',
+      fields: [
+        { name: 'contact_label', label: 'Section Label', type: 'text' },
+        { name: 'contact_headline', label: 'Headline', type: 'text' },
+        { name: 'contact_description', label: 'Description', type: 'textarea' },
+        { name: 'contact_email', label: 'Email', type: 'email' },
+        { name: 'contact_phone', label: 'Phone', type: 'text' },
+        { name: 'contact_location', label: 'Location', type: 'text' },
+      ]
+    },
+    {
+      title: 'Social Links',
+      fields: [
+        { name: 'linkedin_url', label: 'LinkedIn URL', type: 'url' },
+        { name: 'github_url', label: 'GitHub URL', type: 'url' },
+        { name: 'twitter_url', label: 'Twitter/X URL', type: 'url' },
+        { name: 'facebook_url', label: 'Facebook URL', type: 'url' },
+        { name: 'instagram_url', label: 'Instagram URL', type: 'url' },
+      ]
+    },
+    {
+      title: 'Footer',
+      fields: [
+        { name: 'footer_tagline', label: 'Tagline', type: 'text' },
+        { name: 'footer_copyright', label: 'Copyright Text', type: 'text' },
+      ]
+    }
+  ];
+
+  return (
+    <div className="space-y-8">
+      {message && (
+        <div className={`p-4 rounded-xl ${
+          message.includes('success') ? 'bg-teal-500/20 text-teal-400' : 'bg-red-500/20 text-red-400'
+        }`}>
+          {message}
+        </div>
+      )}
+
+      {sections.map((section, idx) => (
+        <div key={idx} className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">{section.title}</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            {section.fields.map((field) => (
+              <div key={field.name} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
+                <label className="block text-sm font-medium text-dark-300 mb-2">
+                  {field.label}
+                </label>
+                {field.type === 'textarea' ? (
+                  <textarea
+                    name={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500"
+                  />
+                ) : (
+                  <input
+                    type={field.type}
+                    name={field.name}
+                    value={formData[field.name] || ''}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:border-teal-500"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="px-6 py-3 bg-gradient-to-r from-teal-500 to-electric-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+      >
+        <Save size={18} />
+        {saving ? 'Saving...' : 'Save All Changes'}
+      </button>
+    </div>
+  );
+}
+
+// Portfolio Tab
+function PortfolioTab({ portfolio, token, onUpdate }) {
+  const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    thumbnail_url: '',
+    live_url: '',
+    technologies: '',
+    featured: false,
+    order: 0
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setFormData(prev => ({ ...prev, [e.target.name]: value }));
   };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      showMessage("error", "Invalid file type. Use JPEG, PNG, WebP, or GIF");
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showMessage("error", "File too large. Maximum size is 5MB");
-      return;
-    }
-
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (e) => setImagePreview(e.target.result);
-    reader.readAsDataURL(file);
-
-    // Upload file
     setUploading(true);
+    const formDataUpload = new FormData();
+    formDataUpload.append('file', file);
+
     try {
-      const uploadData = new FormData();
-      uploadData.append("file", file);
-
-      const response = await axios.post(`${API}/admin/upload`, uploadData, {
-        ...getAuthHeaders(),
-        headers: {
-          ...getAuthHeaders().headers,
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await fetch(`${BACKEND_URL}/api/admin/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formDataUpload
       });
-
-      // Construct full URL for the uploaded image
-      const baseUrl = process.env.REACT_APP_BACKEND_URL;
-      const imageUrl = `${baseUrl}${response.data.url}`;
-      setFormData({ ...formData, image_url: imageUrl });
-      showMessage("success", "Image uploaded successfully");
+      const data = await response.json();
+      if (response.ok) {
+        setFormData(prev => ({ ...prev, thumbnail_url: `${BACKEND_URL}${data.url}` }));
+      }
     } catch (err) {
-      showMessage("error", err.response?.data?.detail || "Failed to upload image");
-      setImagePreview("");
+      console.error('Upload error:', err);
     } finally {
       setUploading(false);
     }
@@ -192,562 +469,211 @@ const AdminDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const data = {
-        ...formData,
-        price: parseFloat(formData.price),
-      };
+    setSaving(true);
 
-      if (editingItem) {
-        await axios.put(`${API}/admin/menu/${editingItem.id}`, data, getAuthHeaders());
-        showMessage("success", "Item updated successfully");
-      } else {
-        await axios.post(`${API}/admin/menu`, data, getAuthHeaders());
-        showMessage("success", "Item created successfully");
+    const payload = {
+      ...formData,
+      technologies: formData.technologies.split(',').map(t => t.trim()).filter(Boolean),
+      order: parseInt(formData.order) || 0
+    };
+
+    try {
+      const url = editingId 
+        ? `${BACKEND_URL}/api/admin/portfolio/${editingId}`
+        : `${BACKEND_URL}/api/admin/portfolio`;
+      
+      const response = await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        resetForm();
+        onUpdate();
       }
-      setShowModal(false);
-      fetchData();
     } catch (err) {
-      showMessage("error", err.response?.data?.detail || "Operation failed");
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
+  const handleEdit = (project) => {
+    setFormData({
+      title: project.title,
+      description: project.description,
+      thumbnail_url: project.thumbnail_url || '',
+      live_url: project.live_url || '',
+      technologies: project.technologies?.join(', ') || '',
+      featured: project.featured || false,
+      order: project.order || 0
+    });
+    setEditingId(project.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this project?')) return;
+
     try {
-      await axios.delete(`${API}/admin/menu/${item.id}`, getAuthHeaders());
-      showMessage("success", "Item deleted");
-      fetchData();
+      await fetch(`${BACKEND_URL}/api/admin/portfolio/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      onUpdate();
     } catch (err) {
-      showMessage("error", "Failed to delete item");
+      console.error('Delete error:', err);
     }
   };
 
-  const toggleSoldOut = async (item) => {
-    try {
-      await axios.put(
-        `${API}/admin/menu/${item.id}`,
-        { is_sold_out: !item.is_sold_out },
-        getAuthHeaders()
-      );
-      fetchData();
-    } catch (err) {
-      showMessage("error", "Failed to update item");
-    }
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      thumbnail_url: '',
+      live_url: '',
+      technologies: '',
+      featured: false,
+      order: 0
+    });
+    setEditingId(null);
+    setShowForm(false);
   };
-
-  const handleSettingsSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/admin/credentials`, settingsData, getAuthHeaders());
-      showMessage("success", "Credentials updated successfully");
-      setShowSettings(false);
-      setSettingsData({ current_password: "", new_username: "", new_password: "" });
-    } catch (err) {
-      showMessage("error", err.response?.data?.detail || "Failed to update credentials");
-    }
-  };
-
-  const filteredItems = menuItems.filter((item) => {
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-cream-paper flex items-center justify-center">
-        <div className="text-deep-char font-sans">Loading...</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-cream-paper">
-      {/* Header */}
-      <header className="bg-deep-char text-cream-paper sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="lg:hidden p-2 hover:bg-cream-paper/10 rounded-lg"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-serif">
-              Taco's <span className="text-saffron-blaze">&</span> Things
-              <span className="text-sm font-sans text-cream-paper/60 ml-2">Admin</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSubscribers(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cream-paper/10 rounded-lg hover:bg-cream-paper/20 transition-colors"
-              title="Email Subscribers"
-              data-testid="subscribers-btn"
-            >
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Subscribers</span>
-            </button>
-            <button
-              onClick={() => setShowContentManager(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cream-paper/10 rounded-lg hover:bg-cream-paper/20 transition-colors"
-              title="Edit Website Content"
-              data-testid="content-btn"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Edit Content</span>
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2 hover:bg-cream-paper/10 rounded-lg transition-colors"
-              title="Settings"
-              data-testid="settings-btn"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-saffron-blaze rounded-lg hover:bg-chili-red transition-colors"
-              data-testid="logout-btn"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Message Toast */}
-      {message.text && (
-        <div
-          className={`fixed top-20 right-4 z-50 px-6 py-3 rounded-xl shadow-lg font-sans ${
-            message.type === "success"
-              ? "bg-green-500 text-white"
-              : "bg-red-500 text-white"
-          }`}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Portfolio Projects</h2>
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-teal-500 text-white rounded-xl flex items-center gap-2 hover:bg-teal-600 transition-colors"
         >
-          {message.text}
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <p className="text-deep-char/60 text-sm font-sans">Total Items</p>
-            <p className="text-2xl font-serif text-deep-char">{menuItems.length}</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <p className="text-deep-char/60 text-sm font-sans">Categories</p>
-            <p className="text-2xl font-serif text-deep-char">{categories.length}</p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <p className="text-deep-char/60 text-sm font-sans">Popular Items</p>
-            <p className="text-2xl font-serif text-deep-char">
-              {menuItems.filter((i) => i.is_popular).length}
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <p className="text-deep-char/60 text-sm font-sans">Sold Out</p>
-            <p className="text-2xl font-serif text-deep-char">
-              {menuItems.filter((i) => i.is_sold_out).length}
-            </p>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-deep-char/40" />
-            <input
-              type="text"
-              placeholder="Search menu items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-              data-testid="search-input"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="relative">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="appearance-none w-full md:w-48 px-4 py-3 pr-10 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans cursor-pointer"
-              data-testid="category-filter"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.emoji} {cat.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-deep-char/40 pointer-events-none" />
-          </div>
-
-          {/* Add Button */}
-          <button
-            onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-saffron-blaze text-white rounded-xl font-sans font-medium hover:bg-chili-red transition-colors"
-            data-testid="add-item-btn"
-          >
-            <Plus className="w-5 h-5" />
-            Add Item
-          </button>
-        </div>
-
-        {/* Menu Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className={`bg-white rounded-xl shadow-sm overflow-hidden ${
-                item.is_sold_out ? "opacity-60" : ""
-              }`}
-              data-testid={`menu-item-card-${item.id}`}
-            >
-              {/* Image */}
-              <div className="relative h-40 bg-gray-100">
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-deep-char/30">
-                    <Image className="w-12 h-12" />
-                  </div>
-                )}
-                {/* Badges */}
-                <div className="absolute top-2 left-2 flex gap-1">
-                  {item.is_popular && (
-                    <span className="bg-maize-gold text-deep-char px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                      <Star className="w-3 h-3" />
-                    </span>
-                  )}
-                  {item.is_spicy && (
-                    <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                      <Flame className="w-3 h-3" />
-                    </span>
-                  )}
-                  {item.is_vegetarian && (
-                    <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                      <Leaf className="w-3 h-3" />
-                    </span>
-                  )}
-                </div>
-                {item.is_sold_out && (
-                  <div className="absolute inset-0 bg-deep-char/50 flex items-center justify-center">
-                    <span className="bg-red-500 text-white px-4 py-2 rounded-full font-bold">
-                      SOLD OUT
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-serif text-lg text-deep-char line-clamp-1">
-                    {item.name}
-                  </h3>
-                  <span className="font-sans font-bold text-saffron-blaze">
-                    A${item.price.toFixed(2)}
-                  </span>
-                </div>
-                <p className="text-sm text-deep-char/60 font-sans line-clamp-2 mb-3">
-                  {item.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-sans text-deep-char/40 bg-cream-paper px-2 py-1 rounded">
-                    {categories.find((c) => c.id === item.category)?.name || item.category}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => toggleSoldOut(item)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        item.is_sold_out
-                          ? "bg-green-100 text-green-600 hover:bg-green-200"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                      title={item.is_sold_out ? "Mark Available" : "Mark Sold Out"}
-                    >
-                      {item.is_sold_out ? <Check className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-                    </button>
-                    <button
-                      onClick={() => openEditModal(item)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                      title="Edit"
-                      data-testid={`edit-btn-${item.id}`}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                      title="Delete"
-                      data-testid={`delete-btn-${item.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12 text-deep-char/60 font-sans">
-            No menu items found.
-          </div>
-        )}
+          <Plus size={18} />
+          Add Project
+        </button>
       </div>
 
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-deep-char/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-cream-paper rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-cream-paper p-4 border-b border-maize-gold/20 flex justify-between items-center">
-              <h2 className="text-xl font-serif text-deep-char">
-                {editingItem ? "Edit Menu Item" : "Add Menu Item"}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-maize-gold/20 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {/* Name */}
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-white mb-6">
+              {editingId ? 'Edit Project' : 'Add New Project'}
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  Name *
-                </label>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Title</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
                   required
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
                 />
               </div>
 
-              {/* Description */}
               <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  Description *
-                </label>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Description</label>
                 <textarea
+                  name="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans resize-none"
-                  rows={3}
+                  onChange={handleChange}
                   required
+                  rows={3}
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
                 />
               </div>
 
-              {/* Price & Category */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                    Price (A$) *
+              <div>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Thumbnail</label>
+                <div className="flex gap-4 items-center">
+                  <input
+                    type="text"
+                    name="thumbnail_url"
+                    value={formData.thumbnail_url}
+                    onChange={handleChange}
+                    placeholder="Image URL or upload"
+                    className="flex-1 px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                  />
+                  <label className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-300 hover:text-white cursor-pointer transition-colors flex items-center gap-2">
+                    <Upload size={18} />
+                    {uploading ? 'Uploading...' : 'Upload'}
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                   </label>
+                </div>
+                {formData.thumbnail_url && (
+                  <img src={formData.thumbnail_url} alt="Preview" className="mt-2 h-32 object-cover rounded-lg" />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Live URL</label>
+                <input
+                  type="url"
+                  name="live_url"
+                  value={formData.live_url}
+                  onChange={handleChange}
+                  placeholder="https://example.com"
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Technologies (comma separated)</label>
+                <input
+                  type="text"
+                  name="technologies"
+                  value={formData.technologies}
+                  onChange={handleChange}
+                  placeholder="React, FastAPI, MongoDB"
+                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">Order</label>
                   <input
                     type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                    required
+                    name="order"
+                    value={formData.order}
+                    onChange={handleChange}
+                    className="w-24 px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-teal-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                    required
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.emoji} {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Image */}
-              <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-2">
-                  Image
-                </label>
-                
-                {/* Toggle between URL and File upload */}
-                <div className="flex gap-2 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => setImageInputType("url")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-sans transition-colors ${
-                      imageInputType === "url"
-                        ? "bg-saffron-blaze text-white"
-                        : "bg-gray-100 text-deep-char/70 hover:bg-gray-200"
-                    }`}
-                  >
-                    <Link className="w-4 h-4" />
-                    URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageInputType("file")}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-sans transition-colors ${
-                      imageInputType === "file"
-                        ? "bg-saffron-blaze text-white"
-                        : "bg-gray-100 text-deep-char/70 hover:bg-gray-200"
-                    }`}
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload File
-                  </button>
-                </div>
-
-                {imageInputType === "url" ? (
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => {
-                      setFormData({ ...formData, image_url: e.target.value });
-                      setImagePreview(e.target.value);
-                    }}
-                    className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                    placeholder="https://..."
-                  />
-                ) : (
-                  <div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-maize-gold/30 bg-white hover:border-saffron-blaze hover:bg-saffron-blaze/5 transition-colors font-sans text-deep-char/60 flex items-center justify-center gap-2"
-                    >
-                      {uploading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-saffron-blaze border-t-transparent rounded-full animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-5 h-5" />
-                          Click to select image
-                        </>
-                      )}
-                    </button>
-                    <p className="text-xs text-deep-char/50 mt-1 font-sans">
-                      Max 5MB. Formats: JPEG, PNG, WebP, GIF
-                    </p>
-                  </div>
-                )}
-
-                {/* Image Preview */}
-                {(imagePreview || formData.image_url) && (
-                  <div className="mt-3 relative">
-                    <img
-                      src={imagePreview || formData.image_url}
-                      alt="Preview"
-                      className="w-full h-32 object-cover rounded-xl border border-maize-gold/20"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, image_url: "" });
-                        setImagePreview("");
-                        if (fileInputRef.current) fileInputRef.current.value = "";
-                      }}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Badges */}
-              <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-2">
-                  Badges
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="flex items-end pb-3">
+                  <label className="flex items-center gap-2 text-dark-300 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.is_popular}
-                      onChange={(e) => setFormData({ ...formData, is_popular: e.target.checked })}
-                      className="w-4 h-4 rounded border-maize-gold/30 text-saffron-blaze focus:ring-saffron-blaze"
+                      name="featured"
+                      checked={formData.featured}
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-dark-700 bg-dark-800 text-teal-500 focus:ring-teal-500"
                     />
-                    <Star className="w-4 h-4 text-maize-gold" />
-                    <span className="font-sans text-sm">Popular</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_spicy}
-                      onChange={(e) => setFormData({ ...formData, is_spicy: e.target.checked })}
-                      className="w-4 h-4 rounded border-maize-gold/30 text-saffron-blaze focus:ring-saffron-blaze"
-                    />
-                    <Flame className="w-4 h-4 text-red-500" />
-                    <span className="font-sans text-sm">Spicy</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_vegetarian}
-                      onChange={(e) => setFormData({ ...formData, is_vegetarian: e.target.checked })}
-                      className="w-4 h-4 rounded border-maize-gold/30 text-saffron-blaze focus:ring-saffron-blaze"
-                    />
-                    <Leaf className="w-4 h-4 text-green-500" />
-                    <span className="font-sans text-sm">Vegetarian</span>
+                    Featured Project
                   </label>
                 </div>
               </div>
 
-              {/* Submit */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 border border-maize-gold/30 rounded-xl font-sans hover:bg-maize-gold/10 transition-colors"
-                >
-                  Cancel
-                </button>
+              <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-saffron-blaze text-white rounded-xl font-sans font-medium hover:bg-chili-red transition-colors"
-                  data-testid="save-item-btn"
+                  disabled={saving}
+                  className="px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl hover:bg-teal-600 transition-colors"
                 >
-                  {editingItem ? "Save Changes" : "Add Item"}
+                  {saving ? 'Saving...' : (editingId ? 'Update' : 'Create')}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-6 py-3 bg-dark-800 text-white rounded-xl hover:bg-dark-700 transition-colors"
+                >
+                  Cancel
                 </button>
               </div>
             </form>
@@ -755,92 +681,455 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <div className="fixed inset-0 bg-deep-char/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-cream-paper rounded-2xl w-full max-w-md">
-            <div className="p-4 border-b border-maize-gold/20 flex justify-between items-center">
-              <h2 className="text-xl font-serif text-deep-char">Change Credentials</h2>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="p-2 hover:bg-maize-gold/20 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {/* Projects List */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {portfolio.map((project) => (
+          <div key={project.id} className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden">
+            <div className="h-40 bg-dark-800">
+              {project.thumbnail_url ? (
+                <img src={project.thumbnail_url} alt={project.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-dark-500">
+                  No Image
+                </div>
+              )}
             </div>
-            <form onSubmit={handleSettingsSubmit} className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  Current Password *
-                </label>
-                <input
-                  type="password"
-                  value={settingsData.current_password}
-                  onChange={(e) =>
-                    setSettingsData({ ...settingsData, current_password: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                  required
-                />
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h4 className="font-semibold text-white">{project.title}</h4>
+                {project.featured && (
+                  <span className="px-2 py-1 bg-coral-500/20 text-coral-400 text-xs rounded-full">Featured</span>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  New Username (optional)
-                </label>
-                <input
-                  type="text"
-                  value={settingsData.new_username}
-                  onChange={(e) =>
-                    setSettingsData({ ...settingsData, new_username: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-sans text-deep-char/70 mb-1">
-                  New Password (optional)
-                </label>
-                <input
-                  type="password"
-                  value={settingsData.new_password}
-                  onChange={(e) =>
-                    setSettingsData({ ...settingsData, new_password: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-xl border border-maize-gold/30 bg-white focus:outline-none focus:border-saffron-blaze font-sans"
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
+              <p className="text-dark-400 text-sm line-clamp-2 mb-4">{project.description}</p>
+              <div className="flex gap-2">
                 <button
-                  type="button"
-                  onClick={() => setShowSettings(false)}
-                  className="flex-1 px-4 py-3 border border-maize-gold/30 rounded-xl font-sans hover:bg-maize-gold/10 transition-colors"
+                  onClick={() => handleEdit(project)}
+                  className="p-2 text-dark-400 hover:text-teal-400 transition-colors"
                 >
-                  Cancel
+                  <Pencil size={18} />
                 </button>
                 <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-saffron-blaze text-white rounded-xl font-sans font-medium hover:bg-chili-red transition-colors"
-                  data-testid="save-credentials-btn"
+                  onClick={() => handleDelete(project.id)}
+                  className="p-2 text-dark-400 hover:text-red-400 transition-colors"
                 >
-                  Update
+                  <Trash2 size={18} />
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
-      {/* Content Manager Modal */}
-      {showContentManager && (
-        <ContentManager onClose={() => setShowContentManager(false)} />
-      )}
-
-      {/* Subscribers Manager Modal */}
-      {showSubscribers && (
-        <SubscribersManager onClose={() => setShowSubscribers(false)} />
+      {portfolio.length === 0 && (
+        <p className="text-center text-dark-400 py-12">No portfolio projects yet. Add your first project!</p>
       )}
     </div>
   );
-};
+}
 
-export default AdminDashboard;
+// Services Tab - Similar structure to Portfolio
+function ServicesTab({ services, token, onUpdate }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ title: '', description: '', icon: 'code', order: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const iconOptions = ['globe', 'smartphone', 'shopping-cart', 'settings', 'code', 'paintbrush', 'database', 'rocket'];
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const url = editingId ? `${BACKEND_URL}/api/admin/services/${editingId}` : `${BACKEND_URL}/api/admin/services`;
+      await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, order: parseInt(formData.order) || 0 })
+      });
+      resetForm();
+      onUpdate();
+    } catch (err) {
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = (service) => {
+    setFormData({ title: service.title, description: service.description, icon: service.icon, order: service.order });
+    setEditingId(service.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this service?')) return;
+    await fetch(`${BACKEND_URL}/api/admin/services/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    onUpdate();
+  };
+
+  const resetForm = () => {
+    setFormData({ title: '', description: '', icon: 'code', order: 0 });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Services</h2>
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-teal-500 text-white rounded-xl flex items-center gap-2">
+          <Plus size={18} /> Add Service
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 w-full max-w-lg">
+            <h3 className="text-lg font-semibold text-white mb-6">{editingId ? 'Edit' : 'Add'} Service</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm text-dark-300 mb-2">Title</label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} required className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-dark-300 mb-2">Description</label>
+                <textarea name="description" value={formData.description} onChange={handleChange} required rows={3} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+              </div>
+              <div>
+                <label className="block text-sm text-dark-300 mb-2">Icon</label>
+                <select name="icon" value={formData.icon} onChange={handleChange} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white">
+                  {iconOptions.map(icon => <option key={icon} value={icon}>{icon}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-dark-300 mb-2">Order</label>
+                <input type="number" name="order" value={formData.order} onChange={handleChange} className="w-24 px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+              </div>
+              <div className="flex gap-4">
+                <button type="submit" disabled={saving} className="px-6 py-3 bg-teal-500 text-white rounded-xl">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="button" onClick={resetForm} className="px-6 py-3 bg-dark-800 text-white rounded-xl">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {services.map(service => (
+          <div key={service.id} className="bg-dark-900 border border-dark-800 rounded-xl p-4 flex items-start justify-between">
+            <div>
+              <h4 className="font-semibold text-white">{service.title}</h4>
+              <p className="text-dark-400 text-sm mt-1">{service.description}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => handleEdit(service)} className="p-2 text-dark-400 hover:text-teal-400"><Pencil size={16} /></button>
+              <button onClick={() => handleDelete(service.id)} className="p-2 text-dark-400 hover:text-red-400"><Trash2 size={16} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Testimonials Tab
+function TestimonialsTab({ testimonials, token, onUpdate }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ author: '', role: '', company: '', text: '', rating: 5, order: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const url = editingId ? `${BACKEND_URL}/api/admin/testimonials/${editingId}` : `${BACKEND_URL}/api/admin/testimonials`;
+      await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, rating: parseInt(formData.rating), order: parseInt(formData.order) || 0 })
+      });
+      resetForm();
+      onUpdate();
+    } catch (err) {
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = (t) => {
+    setFormData({ author: t.author, role: t.role, company: t.company || '', text: t.text, rating: t.rating, order: t.order });
+    setEditingId(t.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this testimonial?')) return;
+    await fetch(`${BACKEND_URL}/api/admin/testimonials/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    onUpdate();
+  };
+
+  const resetForm = () => {
+    setFormData({ author: '', role: '', company: '', text: '', rating: 5, order: 0 });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Testimonials</h2>
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-teal-500 text-white rounded-xl flex items-center gap-2">
+          <Plus size={18} /> Add Testimonial
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 w-full max-w-lg">
+            <h3 className="text-lg font-semibold text-white mb-6">{editingId ? 'Edit' : 'Add'} Testimonial</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div><label className="block text-sm text-dark-300 mb-2">Author</label><input type="text" name="author" value={formData.author} onChange={handleChange} required className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" /></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Role</label><input type="text" name="role" value={formData.role} onChange={handleChange} required className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" placeholder="Business Owner" /></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Company (optional)</label><input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" /></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Testimonial Text</label><textarea name="text" value={formData.text} onChange={handleChange} required rows={4} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" /></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Rating (1-5)</label><input type="number" min="1" max="5" name="rating" value={formData.rating} onChange={handleChange} className="w-24 px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" /></div>
+              <div className="flex gap-4">
+                <button type="submit" disabled={saving} className="px-6 py-3 bg-teal-500 text-white rounded-xl">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="button" onClick={resetForm} className="px-6 py-3 bg-dark-800 text-white rounded-xl">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {testimonials.map(t => (
+          <div key={t.id} className="bg-dark-900 border border-dark-800 rounded-xl p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-dark-300 italic mb-2">"{t.text}"</p>
+                <p className="text-white font-semibold">{t.author}</p>
+                <p className="text-dark-400 text-sm">{t.role}{t.company && ` at ${t.company}`}</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => handleEdit(t)} className="p-2 text-dark-400 hover:text-teal-400"><Pencil size={16} /></button>
+                <button onClick={() => handleDelete(t.id)} className="p-2 text-dark-400 hover:text-red-400"><Trash2 size={16} /></button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {testimonials.length === 0 && <p className="text-center text-dark-400 py-8">No testimonials yet</p>}
+      </div>
+    </div>
+  );
+}
+
+// Skills Tab
+function SkillsTab({ skills, token, onUpdate }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ name: '', category: 'frontend', order: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const categories = ['frontend', 'backend', 'tools', 'other'];
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const url = editingId ? `${BACKEND_URL}/api/admin/skills/${editingId}` : `${BACKEND_URL}/api/admin/skills`;
+      await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ...formData, order: parseInt(formData.order) || 0 })
+      });
+      resetForm();
+      onUpdate();
+    } catch (err) {
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = (skill) => {
+    setFormData({ name: skill.name, category: skill.category, order: skill.order });
+    setEditingId(skill.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this skill?')) return;
+    await fetch(`${BACKEND_URL}/api/admin/skills/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    onUpdate();
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', category: 'frontend', order: 0 });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const skillsByCategory = skills.reduce((acc, skill) => {
+    if (!acc[skill.category]) acc[skill.category] = [];
+    acc[skill.category].push(skill);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Skills</h2>
+        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-teal-500 text-white rounded-xl flex items-center gap-2">
+          <Plus size={18} /> Add Skill
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-white mb-6">{editingId ? 'Edit' : 'Add'} Skill</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div><label className="block text-sm text-dark-300 mb-2">Name</label><input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" placeholder="React" /></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Category</label><select name="category" value={formData.category} onChange={handleChange} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white">
+                {categories.map(cat => <option key={cat} value={cat} className="capitalize">{cat}</option>)}
+              </select></div>
+              <div><label className="block text-sm text-dark-300 mb-2">Order</label><input type="number" name="order" value={formData.order} onChange={handleChange} className="w-24 px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" /></div>
+              <div className="flex gap-4">
+                <button type="submit" disabled={saving} className="px-6 py-3 bg-teal-500 text-white rounded-xl">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="button" onClick={resetForm} className="px-6 py-3 bg-dark-800 text-white rounded-xl">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
+        <div key={category} className="bg-dark-900 border border-dark-800 rounded-xl p-4">
+          <h3 className="text-white font-semibold mb-4 capitalize">{category}</h3>
+          <div className="flex flex-wrap gap-2">
+            {categorySkills.map(skill => (
+              <div key={skill.id} className="group flex items-center gap-2 px-3 py-2 bg-dark-800 rounded-lg">
+                <span className="text-dark-300">{skill.name}</span>
+                <button onClick={() => handleEdit(skill)} className="opacity-0 group-hover:opacity-100 text-dark-400 hover:text-teal-400 transition-opacity"><Pencil size={14} /></button>
+                <button onClick={() => handleDelete(skill.id)} className="opacity-0 group-hover:opacity-100 text-dark-400 hover:text-red-400 transition-opacity"><Trash2 size={14} /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Messages Tab
+function MessagesTab({ messages, token, onUpdate }) {
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this message?')) return;
+    await fetch(`${BACKEND_URL}/api/admin/messages/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    onUpdate();
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold text-white">Contact Messages ({messages.length})</h2>
+      <div className="space-y-4">
+        {messages.map(msg => (
+          <div key={msg.id} className="bg-dark-900 border border-dark-800 rounded-xl p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h4 className="text-white font-semibold">{msg.name}</h4>
+                <p className="text-teal-400 text-sm">{msg.email}</p>
+                {msg.subject && <p className="text-dark-400 text-sm mt-1">Subject: {msg.subject}</p>}
+              </div>
+              <button onClick={() => handleDelete(msg.id)} className="p-2 text-dark-400 hover:text-red-400"><Trash2 size={18} /></button>
+            </div>
+            <p className="text-dark-300">{msg.message}</p>
+            <p className="text-dark-500 text-xs mt-4">{new Date(msg.created_at).toLocaleString()}</p>
+          </div>
+        ))}
+        {messages.length === 0 && <p className="text-center text-dark-400 py-12">No messages yet</p>}
+      </div>
+    </div>
+  );
+}
+
+// Settings Tab
+function SettingsTab({ token }) {
+  const [formData, setFormData] = useState({ current_password: '', new_username: '', new_password: '' });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/credentials`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMessage('Credentials updated successfully!');
+        setFormData({ current_password: '', new_username: '', new_password: '' });
+      } else {
+        setMessage(data.detail || 'Failed to update credentials');
+      }
+    } catch (err) {
+      setMessage('Error updating credentials');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md">
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-6">Change Admin Credentials</h3>
+        {message && (
+          <div className={`p-4 rounded-xl mb-6 ${message.includes('success') ? 'bg-teal-500/20 text-teal-400' : 'bg-red-500/20 text-red-400'}`}>
+            {message}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-dark-300 mb-2">Current Password *</label>
+            <input type="password" name="current_password" value={formData.current_password} onChange={handleChange} required className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+          </div>
+          <div>
+            <label className="block text-sm text-dark-300 mb-2">New Username (optional)</label>
+            <input type="text" name="new_username" value={formData.new_username} onChange={handleChange} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+          </div>
+          <div>
+            <label className="block text-sm text-dark-300 mb-2">New Password (optional)</label>
+            <input type="password" name="new_password" value={formData.new_password} onChange={handleChange} className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white" />
+          </div>
+          <button type="submit" disabled={saving} className="w-full px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">
+            {saving ? 'Updating...' : 'Update Credentials'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

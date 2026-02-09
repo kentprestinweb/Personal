@@ -128,11 +128,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Admin login/logout with JWT tokens - username: kentprestin, password: portfolio2025"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Admin login successful with credentials kentprestin/portfolio2025. Token verification working. Invalid credentials properly rejected (401). Unauthorized access blocked (403)."
   
   - task: "Site Content Management"
     implemented: true

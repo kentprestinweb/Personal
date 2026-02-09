@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { LogoSquare } from '../Logo';
 
-const LOGO_SQUARE = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/49lgwxck_kap-logo-square-128.png';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function AdminLogin() {

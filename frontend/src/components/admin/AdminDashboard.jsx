@@ -127,11 +127,15 @@ export default function AdminDashboard() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-dark-800">
-            <img 
-              src={LOGO_HORIZONTAL} 
-              alt="KAP Logo" 
-              className="h-10 w-auto brightness-0 invert"
-            />
+            <div className="flex items-center gap-3">
+              <LogoIcon className="w-10 h-10" />
+              <div>
+                <div className="text-sm font-bold bg-gradient-to-r from-teal-400 via-electric-blue-400 to-coral-400 bg-clip-text text-transparent">
+                  KAP Admin
+                </div>
+                <div className="text-xs text-dark-500">Portfolio Manager</div>
+              </div>
+            </div>
           </div>
 
           {/* Menu */}

@@ -30,12 +30,8 @@ export default function Footer() {
         <div className="grid md:grid-cols-3 gap-12">
           {/* Logo & Tagline */}
           <div className="space-y-4">
-            <img 
-              src={LOGO_HORIZONTAL} 
-              alt="KAP - Kent Angelo Prestin" 
-              className="h-12 w-auto brightness-0 invert"
-            />
-            <p className="text-dark-400">
+            <LogoFooter className="h-12" />
+            <p className="text-dark-400 max-w-xs">
               {content?.footer_tagline || 'Building Digital Experiences That Matter'}
             </p>
           </div>

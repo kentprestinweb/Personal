@@ -248,11 +248,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "GET /api/admin/stats for portfolio/services/testimonials/messages counts"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/admin/stats returns all expected statistics with authentication required. Stats: portfolio: 1, services: 4, testimonials: 0, messages: 1, skills: 10."
 
 frontend:
   - task: "Public Website - Hero Section"

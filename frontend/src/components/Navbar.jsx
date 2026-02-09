@@ -40,11 +40,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <a href="#home" onClick={(e) => handleNavClick(e, '#home')} className="flex-shrink-0">
-            <img 
-              src={LOGO_HORIZONTAL} 
-              alt="KAP - Kent Angelo Prestin" 
-              className="h-12 md:h-14 w-auto"
-            />
+            <LogoNavbar className="h-12" />
           </a>
 
           {/* Desktop Navigation */}

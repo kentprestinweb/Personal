@@ -1,6 +1,6 @@
 import React from 'react';
 import { useContent } from '../context/ContentContext';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Github, Rocket, Sparkles } from 'lucide-react';
 
 export default function Portfolio() {
   const { content, portfolio, loading } = useContent();
@@ -16,6 +16,9 @@ export default function Portfolio() {
       </section>
     );
   }
+
+  // Show "Coming Soon" card if there are less than 3 projects
+  const showComingSoon = portfolio.length < 3;
 
   return (
     <section id="portfolio" className="section-padding bg-gradient-to-b from-dark-50 to-white">

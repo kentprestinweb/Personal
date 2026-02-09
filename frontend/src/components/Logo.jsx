@@ -48,25 +48,25 @@ export function LogoSquare({ className = "w-20 h-20", showText = false }) {
         </linearGradient>
       </defs>
       
-      {/* Background with gradient border */}
+      {/* Background with gradient */}
       <rect x="4" y="4" width="120" height="120" rx="24" fill="url(#gradientBg)" />
       
       {/* Inner background */}
       <rect x="8" y="8" width="112" height="112" rx="20" fill="#0a0a0a" />
       
-      {/* Code brackets < > */}
-      <path d="M18 46L8 64L18 82" stroke="#14b8a6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
-      <path d="M110 46L120 64L110 82" stroke="#f97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+      {/* Code brackets */}
+      <path d="M36 44L24 64L36 84" stroke="#14b8a6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+      <path d="M92 44L104 64L92 84" stroke="#f97316" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
       
-      {/* KAP text - centered between brackets */}
-      <text x="64" y="72" textAnchor="middle" fontFamily="Georgia, serif" fontSize="32" fontWeight="bold" fill="white" letterSpacing="2">
-        KAP
-      </text>
+      {/* K letter */}
+      <path d="M52 48V80H58V66L72 80H80L62 64L78 48H70L58 60V48H52Z" fill="white" />
       
       {showText && (
-        <text x="64" y="100" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fontWeight="600" fill="white" opacity="0.8">
-          Web Dev
-        </text>
+        <>
+          <text x="64" y="100" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fontWeight="600" fill="white" opacity="0.8">
+            KAP
+          </text>
+        </>
       )}
     </svg>
   );

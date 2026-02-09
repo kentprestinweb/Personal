@@ -26,7 +26,7 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'portfolio_db')]
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -40,6 +40,10 @@ security = HTTPBearer()
 # Simple token storage (in production, use Redis or similar)
 active_tokens = {}
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -49,91 +53,129 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return active_tokens[token]
 
-# ----- Models -----
+# ----- Portfolio Models -----
 
-class MenuItem(BaseModel):
+class PortfolioProject(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
+    title: str
     description: str
-    price: float
-    category: str
-    image_url: Optional[str] = None
-    is_vegetarian: bool = False
-    is_spicy: bool = False
-    is_popular: bool = False
-
-class MenuItemCreate(BaseModel):
-    name: str
-    description: str
-    price: float
-    category: str
-    image_url: Optional[str] = None
-    is_vegetarian: bool = False
-    is_spicy: bool = False
-    is_popular: bool = False
-
-class CartItem(BaseModel):
-    menu_item_id: str
-    name: str
-    price: float
-    quantity: int
-
-class Order(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    customer_name: str
-    customer_phone: str
-    customer_email: Optional[str] = None
-    order_type: str
-    delivery_address: Optional[str] = None
-    items: List[CartItem]
-    total: float
-    status: str = "pending"
-    notes: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    live_url: Optional[str] = None
+    technologies: List[str] = []
+    featured: bool = False
+    order: int = 0
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-class OrderCreate(BaseModel):
-    customer_name: str
-    customer_phone: str
-    customer_email: Optional[str] = None
-    order_type: str
-    delivery_address: Optional[str] = None
-    items: List[CartItem]
-    total: float
-    notes: Optional[str] = None
+class PortfolioProjectCreate(BaseModel):
+    title: str
+    description: str
+    thumbnail_url: Optional[str] = None
+    live_url: Optional[str] = None
+    technologies: List[str] = []
+    featured: bool = False
+    order: int = 0
 
-class NewsletterSubscription(BaseModel):
+class PortfolioProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    live_url: Optional[str] = None
+    technologies: Optional[List[str]] = None
+    featured: Optional[bool] = None
+    order: Optional[int] = None
+
+# ----- Service Models -----
+
+class Service(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: str
-    subscribed_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    title: str
+    description: str
+    icon: str = "code"
+    order: int = 0
 
-class NewsletterCreate(BaseModel):
-    email: str
+class ServiceCreate(BaseModel):
+    title: str
+    description: str
+    icon: str = "code"
+    order: int = 0
+
+class ServiceUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    order: Optional[int] = None
+
+# ----- Testimonial Models -----
+
+class Testimonial(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    author: str
+    role: str
+    company: Optional[str] = None
+    text: str
+    image_url: Optional[str] = None
+    rating: int = 5
+    order: int = 0
+
+class TestimonialCreate(BaseModel):
+    author: str
+    role: str
+    company: Optional[str] = None
+    text: str
+    image_url: Optional[str] = None
+    rating: int = 5
+    order: int = 0
+
+class TestimonialUpdate(BaseModel):
+    author: Optional[str] = None
+    role: Optional[str] = None
+    company: Optional[str] = None
+    text: Optional[str] = None
+    image_url: Optional[str] = None
+    rating: Optional[int] = None
+    order: Optional[int] = None
+
+# ----- Skill Models -----
+
+class Skill(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str  # "frontend", "backend", "tools", "other"
+    icon: Optional[str] = None
+    order: int = 0
+
+class SkillCreate(BaseModel):
+    name: str
+    category: str
+    icon: Optional[str] = None
+    order: int = 0
+
+class SkillUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    icon: Optional[str] = None
+    order: Optional[int] = None
+
+# ----- Contact Message Model -----
 
 class ContactMessage(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     email: str
-    phone: Optional[str] = None
+    subject: Optional[str] = None
     message: str
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class ContactCreate(BaseModel):
     name: str
     email: str
-    phone: Optional[str] = None
+    subject: Optional[str] = None
     message: str
-
-class Review(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    author: str
-    rating: int
-    text: str
-    date: str
 
 # ----- Admin Models -----
 
@@ -146,161 +188,255 @@ class AdminCredentialsUpdate(BaseModel):
     new_username: Optional[str] = None
     new_password: Optional[str] = None
 
-class MenuItemUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[float] = None
-    category: Optional[str] = None
-    image_url: Optional[str] = None
-    is_vegetarian: Optional[bool] = None
-    is_spicy: Optional[bool] = None
-    is_popular: Optional[bool] = None
-    is_sold_out: Optional[bool] = None
-
 # ----- Site Content Model -----
 class SiteContent(BaseModel):
     # Hero Section
-    hero_title: str = "Clyde North's Best Tacos"
-    hero_subtitle: str = "Taco's & Things"
-    hero_headline: str = "Where Indian Spices Meet Mexican Soul"
-    hero_tagline: str = "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite."
-    hero_image: str = "/taco-truck-hero.png"
-    hero_uber_eats_url: str = "https://www.ubereats.com/au/store/tacos-%26-things/KdHs1234"
-    hero_doordash_url: str = "https://www.doordash.com/store/tacos-and-things-clyde-north-12345"
+    hero_name: str = "Kent Angelo Prestin"
+    hero_title: str = "Web Developer"
+    hero_subtitle: str = "Creating Beautiful & Functional Websites"
+    hero_tagline: str = "I transform ideas into stunning digital experiences. Specializing in modern, responsive web development with a focus on user experience and clean code."
+    hero_cta_text: str = "View My Work"
+    hero_cta_url: str = "#portfolio"
+    hero_image: Optional[str] = None
     
     # About Section
-    about_label: str = "Our Story"
-    about_headline: str = "A Flavourful Journey of Two Cultures"
-    about_text_1: str = "At Taco's & Things, we believe that the best flavours are born from unexpected combinations. Our culinary journey began with a simple idea: what if we brought together the aromatic spices of India with the vibrant, fresh flavours of Mexico?"
-    about_text_2: str = "From our signature Tandoori Paneer Tacos to our crispy Southern Chicken creations, every dish tells a story of two cultures coming together in perfect harmony. We use only the freshest ingredients and authentic spices to create dishes that will take your taste buds on an unforgettable adventure."
+    about_label: str = "About Me"
+    about_headline: str = "Passionate Web Developer Based in Australia"
+    about_bio: str = "I'm Kent Angelo Prestin, a dedicated web developer with a passion for creating beautiful, functional websites that help businesses grow and succeed online. With expertise in modern web technologies, I deliver solutions that are not only visually appealing but also performant and user-friendly."
+    about_bio_2: str = "From concept to deployment, I handle every aspect of web development with care and attention to detail. My goal is to build websites that not only look great but also drive results for my clients."
+    about_image: Optional[str] = None
+    about_years_experience: str = "2+"
+    about_projects_completed: str = "10+"
+    about_clients_satisfied: str = "5+"
     
-    # Gallery Section
-    gallery_label: str = "Gallery"
-    gallery_headline: str = "A Feast for the Eyes"
-    gallery_description: str = "Take a peek at our mouthwatering creations. Every dish is a work of art, crafted to delight both your eyes and taste buds."
-    gallery_images: List[str] = []
+    # Services Section
+    services_label: str = "What I Do"
+    services_headline: str = "Services I Offer"
+    services_description: str = "I provide comprehensive web development services to help bring your digital vision to life."
+    
+    # Portfolio Section
+    portfolio_label: str = "My Work"
+    portfolio_headline: str = "Featured Projects"
+    portfolio_description: str = "Here are some of my recent projects. Each one represents my commitment to quality and attention to detail."
+    
+    # Testimonials Section
+    testimonials_label: str = "Testimonials"
+    testimonials_headline: str = "What Clients Say"
+    testimonials_description: str = "Don't just take my word for it - hear from the businesses I've helped."
     
     # Contact Section
-    contact_label: str = "Visit Us"
-    contact_headline: str = "Come Say Hello"
-    contact_address: str = "Unit 3/47 Rainier Cres, Clyde North VIC 3978"
-    contact_phone: str = "0439 406 042"
-    contact_email: str = "hello@tacosandthings.com.au"
-    contact_hours: str = "Open daily from 5:00 PM"
-    contact_map_embed: str = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3146.5!2d145.35!3d-38.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDA2JzAwLjAiUyAxNDXCsDIxJzAwLjAiRQ!5e0!3m2!1sen!2sau!4v1234567890"
-    
-    # Footer Section  
-    footer_tagline: str = "Where Indian Spices Meet Mexican Soul"
-    footer_description: str = "Bringing you the best fusion cuisine in Clyde North. Fresh ingredients, bold flavors, unforgettable experiences."
+    contact_label: str = "Get In Touch"
+    contact_headline: str = "Let's Work Together"
+    contact_description: str = "Have a project in mind? I'd love to hear about it. Get in touch and let's create something amazing together."
+    contact_email: str = "kent@example.com"
+    contact_phone: str = ""
+    contact_location: str = "Australia"
     
     # Social Links
-    facebook_url: str = "https://www.facebook.com/p/Tacos-Things-61575431517600/"
+    linkedin_url: str = ""
+    github_url: str = ""
+    twitter_url: str = ""
+    facebook_url: str = ""
+    instagram_url: str = ""
     
+    # Footer
+    footer_tagline: str = "Building Digital Experiences That Matter"
+    footer_copyright: str = "© 2025 Kent Angelo Prestin. All rights reserved."
+
 class SiteContentUpdate(BaseModel):
+    hero_name: Optional[str] = None
     hero_title: Optional[str] = None
     hero_subtitle: Optional[str] = None
-    hero_headline: Optional[str] = None
     hero_tagline: Optional[str] = None
+    hero_cta_text: Optional[str] = None
+    hero_cta_url: Optional[str] = None
     hero_image: Optional[str] = None
-    hero_uber_eats_url: Optional[str] = None
-    hero_doordash_url: Optional[str] = None
     about_label: Optional[str] = None
     about_headline: Optional[str] = None
-    about_text_1: Optional[str] = None
-    about_text_2: Optional[str] = None
-    gallery_label: Optional[str] = None
-    gallery_headline: Optional[str] = None
-    gallery_description: Optional[str] = None
-    gallery_images: Optional[List[str]] = None
+    about_bio: Optional[str] = None
+    about_bio_2: Optional[str] = None
+    about_image: Optional[str] = None
+    about_years_experience: Optional[str] = None
+    about_projects_completed: Optional[str] = None
+    about_clients_satisfied: Optional[str] = None
+    services_label: Optional[str] = None
+    services_headline: Optional[str] = None
+    services_description: Optional[str] = None
+    portfolio_label: Optional[str] = None
+    portfolio_headline: Optional[str] = None
+    portfolio_description: Optional[str] = None
+    testimonials_label: Optional[str] = None
+    testimonials_headline: Optional[str] = None
+    testimonials_description: Optional[str] = None
     contact_label: Optional[str] = None
     contact_headline: Optional[str] = None
-    contact_address: Optional[str] = None
-    contact_phone: Optional[str] = None
+    contact_description: Optional[str] = None
     contact_email: Optional[str] = None
-    contact_hours: Optional[str] = None
-    contact_map_embed: Optional[str] = None
-    footer_tagline: Optional[str] = None
-    footer_description: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_location: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    twitter_url: Optional[str] = None
     facebook_url: Optional[str] = None
+    instagram_url: Optional[str] = None
+    footer_tagline: Optional[str] = None
+    footer_copyright: Optional[str] = None
+
+# ----- Default Content -----
+DEFAULT_CONTENT = {
+    "hero_name": "Kent Angelo Prestin",
+    "hero_title": "Web Developer",
+    "hero_subtitle": "Creating Beautiful & Functional Websites",
+    "hero_tagline": "I transform ideas into stunning digital experiences. Specializing in modern, responsive web development with a focus on user experience and clean code.",
+    "hero_cta_text": "View My Work",
+    "hero_cta_url": "#portfolio",
+    "hero_image": None,
+    "about_label": "About Me",
+    "about_headline": "Passionate Web Developer Based in Australia",
+    "about_bio": "I'm Kent Angelo Prestin, a dedicated web developer with a passion for creating beautiful, functional websites that help businesses grow and succeed online. With expertise in modern web technologies, I deliver solutions that are not only visually appealing but also performant and user-friendly.",
+    "about_bio_2": "From concept to deployment, I handle every aspect of web development with care and attention to detail. My goal is to build websites that not only look great but also drive results for my clients.",
+    "about_image": None,
+    "about_years_experience": "2+",
+    "about_projects_completed": "10+",
+    "about_clients_satisfied": "5+",
+    "services_label": "What I Do",
+    "services_headline": "Services I Offer",
+    "services_description": "I provide comprehensive web development services to help bring your digital vision to life.",
+    "portfolio_label": "My Work",
+    "portfolio_headline": "Featured Projects",
+    "portfolio_description": "Here are some of my recent projects. Each one represents my commitment to quality and attention to detail.",
+    "testimonials_label": "Testimonials",
+    "testimonials_headline": "What Clients Say",
+    "testimonials_description": "Don't just take my word for it - hear from the businesses I've helped.",
+    "contact_label": "Get In Touch",
+    "contact_headline": "Let's Work Together",
+    "contact_description": "Have a project in mind? I'd love to hear about it. Get in touch and let's create something amazing together.",
+    "contact_email": "kent@example.com",
+    "contact_phone": "",
+    "contact_location": "Australia",
+    "linkedin_url": "",
+    "github_url": "",
+    "twitter_url": "",
+    "facebook_url": "",
+    "instagram_url": "",
+    "footer_tagline": "Building Digital Experiences That Matter",
+    "footer_copyright": "© 2025 Kent Angelo Prestin. All rights reserved."
+}
+
+# Default services
+DEFAULT_SERVICES = [
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Website Development",
+        "description": "Custom-built websites tailored to your business needs. From landing pages to full-featured web applications.",
+        "icon": "globe",
+        "order": 1
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Responsive Design",
+        "description": "Websites that look and work perfectly on all devices - desktop, tablet, and mobile.",
+        "icon": "smartphone",
+        "order": 2
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "E-Commerce Solutions",
+        "description": "Online stores with secure payment processing, inventory management, and customer accounts.",
+        "icon": "shopping-cart",
+        "order": 3
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Website Maintenance",
+        "description": "Ongoing support, updates, and improvements to keep your website running smoothly.",
+        "icon": "settings",
+        "order": 4
+    }
+]
+
+# Default portfolio project
+DEFAULT_PORTFOLIO = [
+    {
+        "id": str(uuid.uuid4()),
+        "title": "Taco's & Things",
+        "description": "A modern, professional restaurant website for an Indian-Mexican fusion taco truck. Features include online ordering integration, menu management, photo gallery, and admin dashboard.",
+        "thumbnail_url": "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/n2cl794d_1.jpg",
+        "live_url": "",
+        "technologies": ["React", "FastAPI", "MongoDB", "Tailwind CSS"],
+        "featured": True,
+        "order": 1,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+]
+
+# Default skills
+DEFAULT_SKILLS = [
+    {"id": str(uuid.uuid4()), "name": "React", "category": "frontend", "icon": "react", "order": 1},
+    {"id": str(uuid.uuid4()), "name": "JavaScript", "category": "frontend", "icon": "javascript", "order": 2},
+    {"id": str(uuid.uuid4()), "name": "HTML/CSS", "category": "frontend", "icon": "html", "order": 3},
+    {"id": str(uuid.uuid4()), "name": "Tailwind CSS", "category": "frontend", "icon": "tailwind", "order": 4},
+    {"id": str(uuid.uuid4()), "name": "Python", "category": "backend", "icon": "python", "order": 5},
+    {"id": str(uuid.uuid4()), "name": "FastAPI", "category": "backend", "icon": "fastapi", "order": 6},
+    {"id": str(uuid.uuid4()), "name": "Node.js", "category": "backend", "icon": "nodejs", "order": 7},
+    {"id": str(uuid.uuid4()), "name": "MongoDB", "category": "backend", "icon": "mongodb", "order": 8},
+    {"id": str(uuid.uuid4()), "name": "Git", "category": "tools", "icon": "git", "order": 9},
+    {"id": str(uuid.uuid4()), "name": "Figma", "category": "tools", "icon": "figma", "order": 10},
+]
 
 # ----- Routes -----
 
 @api_router.get("/")
 async def root():
-    return {"message": "Taco's & Things API"}
+    return {"message": "Kent Angelo Prestin Portfolio API"}
 
-# Menu routes
-@api_router.get("/menu", response_model=List[MenuItem])
-async def get_menu():
-    items = await db.menu_items.find({}, {"_id": 0}).to_list(200)
-    return items
+# ----- Public Routes -----
 
-@api_router.get("/menu/{category}", response_model=List[MenuItem])
-async def get_menu_by_category(category: str):
-    items = await db.menu_items.find({"category": category}, {"_id": 0}).to_list(100)
-    return items
+# Get site content (public)
+@api_router.get("/content")
+async def get_site_content():
+    content = await db.site_content.find_one({}, {"_id": 0})
+    if not content:
+        return DEFAULT_CONTENT
+    return content
 
-class UpdateImageRequest(BaseModel):
-    name: str
-    image_url: str
+# Get portfolio projects (public)
+@api_router.get("/portfolio", response_model=List[PortfolioProject])
+async def get_portfolio():
+    projects = await db.portfolio.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    if not projects:
+        return DEFAULT_PORTFOLIO
+    return projects
 
-@api_router.put("/menu/update-image")
-async def update_menu_image(request: UpdateImageRequest):
-    result = await db.menu_items.update_many(
-        {"name": request.name},
-        {"$set": {"image_url": request.image_url}}
-    )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-    return {"message": f"Updated {result.modified_count} item(s)", "name": request.name}
+# Get services (public)
+@api_router.get("/services", response_model=List[Service])
+async def get_services():
+    services = await db.services.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    if not services:
+        return DEFAULT_SERVICES
+    return services
 
-@api_router.post("/menu", response_model=MenuItem)
-async def create_menu_item(item: MenuItemCreate):
-    menu_item = MenuItem(**item.model_dump())
-    doc = menu_item.model_dump()
-    await db.menu_items.insert_one(doc)
-    return menu_item
+# Get testimonials (public)
+@api_router.get("/testimonials", response_model=List[Testimonial])
+async def get_testimonials():
+    testimonials = await db.testimonials.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return testimonials
 
-# Order routes
-@api_router.post("/orders", response_model=Order)
-async def create_order(order: OrderCreate):
-    order_obj = Order(**order.model_dump())
-    doc = order_obj.model_dump()
-    await db.orders.insert_one(doc)
-    return order_obj
+# Get skills (public)
+@api_router.get("/skills", response_model=List[Skill])
+async def get_skills():
+    skills = await db.skills.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    if not skills:
+        return DEFAULT_SKILLS
+    return skills
 
-@api_router.get("/orders/{order_id}", response_model=Order)
-async def get_order(order_id: str):
-    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return order
-
-# Newsletter routes
-@api_router.post("/newsletter", response_model=NewsletterSubscription)
-async def subscribe_newsletter(subscription: NewsletterCreate):
-    existing = await db.newsletter.find_one({"email": subscription.email})
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already subscribed")
-    
-    sub_obj = NewsletterSubscription(**subscription.model_dump())
-    doc = sub_obj.model_dump()
-    await db.newsletter.insert_one(doc)
-    return sub_obj
-
-# Contact routes
+# Submit contact form (public)
 @api_router.post("/contact", response_model=ContactMessage)
 async def submit_contact(contact: ContactCreate):
     contact_obj = ContactMessage(**contact.model_dump())
     doc = contact_obj.model_dump()
     await db.contact_messages.insert_one(doc)
     return contact_obj
-
-# Reviews routes
-@api_router.get("/reviews", response_model=List[Review])
-async def get_reviews():
-    reviews = await db.reviews.find({}, {"_id": 0}).to_list(50)
-    return reviews
 
 # ----- Admin Routes -----
 
@@ -310,11 +446,37 @@ async def init_admin():
     admin = await db.admin.find_one({})
     if not admin:
         await db.admin.insert_one({
-            "username": "tacosandthings",
-            "password": hash_password("ubereatsdoordash"),
+            "username": "kentprestin",
+            "password": hash_password("portfolio2025"),
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         logger.info("Admin credentials initialized")
+
+# Initialize site content
+@app.on_event("startup")
+async def init_site_content():
+    content = await db.site_content.find_one({})
+    if not content:
+        await db.site_content.insert_one(DEFAULT_CONTENT.copy())
+        logger.info("Site content initialized")
+    
+    # Initialize services if empty
+    services_count = await db.services.count_documents({})
+    if services_count == 0:
+        await db.services.insert_many(DEFAULT_SERVICES)
+        logger.info("Default services initialized")
+    
+    # Initialize portfolio if empty
+    portfolio_count = await db.portfolio.count_documents({})
+    if portfolio_count == 0:
+        await db.portfolio.insert_many(DEFAULT_PORTFOLIO)
+        logger.info("Default portfolio initialized")
+    
+    # Initialize skills if empty
+    skills_count = await db.skills.count_documents({})
+    if skills_count == 0:
+        await db.skills.insert_many(DEFAULT_SKILLS)
+        logger.info("Default skills initialized")
 
 @api_router.post("/admin/login")
 async def admin_login(credentials: AdminLogin):
@@ -366,69 +528,176 @@ async def update_admin_credentials(update: AdminCredentialsUpdate, user: dict = 
     
     return {"message": "Credentials updated successfully"}
 
-# Admin Menu Management
-@api_router.get("/admin/menu")
-async def admin_get_menu(user: dict = Depends(verify_token)):
-    items = await db.menu_items.find({}, {"_id": 0}).to_list(500)
-    return items
+# ----- Admin Content Management -----
 
-@api_router.post("/admin/menu")
-async def admin_create_menu_item(item: MenuItemCreate, user: dict = Depends(verify_token)):
-    menu_item = MenuItem(**item.model_dump())
-    doc = menu_item.model_dump()
-    doc["is_sold_out"] = False
-    await db.menu_items.insert_one(doc)
-    # Remove _id from response (MongoDB adds it after insert)
-    doc.pop("_id", None)
-    return {"message": "Item created", "item": doc}
+@api_router.get("/admin/content")
+async def admin_get_site_content(user: dict = Depends(verify_token)):
+    content = await db.site_content.find_one({}, {"_id": 0})
+    if not content:
+        return DEFAULT_CONTENT
+    return content
 
-@api_router.put("/admin/menu/{item_id}")
-async def admin_update_menu_item(item_id: str, update: MenuItemUpdate, user: dict = Depends(verify_token)):
+@api_router.put("/admin/content")
+async def admin_update_site_content(update: SiteContentUpdate, user: dict = Depends(verify_token)):
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No update data provided")
     
-    result = await db.menu_items.update_one({"id": item_id}, {"$set": update_data})
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Menu item not found")
+    await db.site_content.update_one({}, {"$set": update_data}, upsert=True)
+    return {"message": "Content updated successfully"}
+
+# ----- Admin Portfolio Management -----
+
+@api_router.get("/admin/portfolio")
+async def admin_get_portfolio(user: dict = Depends(verify_token)):
+    projects = await db.portfolio.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return projects
+
+@api_router.post("/admin/portfolio")
+async def admin_create_portfolio(project: PortfolioProjectCreate, user: dict = Depends(verify_token)):
+    portfolio_project = PortfolioProject(**project.model_dump())
+    doc = portfolio_project.model_dump()
+    await db.portfolio.insert_one(doc)
+    doc.pop("_id", None)
+    return {"message": "Project created", "project": doc}
+
+@api_router.put("/admin/portfolio/{project_id}")
+async def admin_update_portfolio(project_id: str, update: PortfolioProjectUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
     
-    return {"message": "Item updated"}
-
-@api_router.delete("/admin/menu/{item_id}")
-async def admin_delete_menu_item(item_id: str, user: dict = Depends(verify_token)):
-    result = await db.menu_items.delete_one({"id": item_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-    return {"message": "Item deleted"}
-
-@api_router.post("/admin/menu/{item_id}/image")
-async def admin_upload_image(item_id: str, image_url: str, user: dict = Depends(verify_token)):
-    result = await db.menu_items.update_one({"id": item_id}, {"$set": {"image_url": image_url}})
+    result = await db.portfolio.update_one({"id": project_id}, {"$set": update_data})
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-    return {"message": "Image updated"}
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    return {"message": "Project updated"}
 
-# Get categories
-@api_router.get("/admin/categories")
-async def admin_get_categories(user: dict = Depends(verify_token)):
-    categories = [
-        {"id": "most-ordered", "name": "Most Ordered", "emoji": "⭐"},
-        {"id": "tacos", "name": "Tacos", "emoji": "🌮"},
-        {"id": "tandoori-tacos", "name": "Tandoori Tacos", "emoji": "🔥"},
-        {"id": "southern-tacos", "name": "Southern Tacos", "emoji": "🍗"},
-        {"id": "indian", "name": "Bit of Indian", "emoji": "🍛"},
-        {"id": "fish-chips", "name": "Fish & Chips", "emoji": "🐟"},
-        {"id": "grilled-fish", "name": "Grilled Fish", "emoji": "🍽️"},
-        {"id": "burgers", "name": "Burgers", "emoji": "🍔"},
-        {"id": "sharing", "name": "Sharing Platter", "emoji": "🍱"},
-        {"id": "snack-packs", "name": "Snack Packs", "emoji": "📦"},
-        {"id": "kids", "name": "Kid's", "emoji": "👶"},
-        {"id": "sides", "name": "Sides", "emoji": "🍟"},
-        {"id": "desserts", "name": "Desserts", "emoji": "🍨"},
-    ]
-    return categories
+@api_router.delete("/admin/portfolio/{project_id}")
+async def admin_delete_portfolio(project_id: str, user: dict = Depends(verify_token)):
+    result = await db.portfolio.delete_one({"id": project_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"message": "Project deleted"}
 
-# File upload endpoint
+# ----- Admin Services Management -----
+
+@api_router.get("/admin/services")
+async def admin_get_services(user: dict = Depends(verify_token)):
+    services = await db.services.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return services
+
+@api_router.post("/admin/services")
+async def admin_create_service(service: ServiceCreate, user: dict = Depends(verify_token)):
+    service_obj = Service(**service.model_dump())
+    doc = service_obj.model_dump()
+    await db.services.insert_one(doc)
+    doc.pop("_id", None)
+    return {"message": "Service created", "service": doc}
+
+@api_router.put("/admin/services/{service_id}")
+async def admin_update_service(service_id: str, update: ServiceUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.services.update_one({"id": service_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    return {"message": "Service updated"}
+
+@api_router.delete("/admin/services/{service_id}")
+async def admin_delete_service(service_id: str, user: dict = Depends(verify_token)):
+    result = await db.services.delete_one({"id": service_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return {"message": "Service deleted"}
+
+# ----- Admin Testimonials Management -----
+
+@api_router.get("/admin/testimonials")
+async def admin_get_testimonials(user: dict = Depends(verify_token)):
+    testimonials = await db.testimonials.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return testimonials
+
+@api_router.post("/admin/testimonials")
+async def admin_create_testimonial(testimonial: TestimonialCreate, user: dict = Depends(verify_token)):
+    testimonial_obj = Testimonial(**testimonial.model_dump())
+    doc = testimonial_obj.model_dump()
+    await db.testimonials.insert_one(doc)
+    doc.pop("_id", None)
+    return {"message": "Testimonial created", "testimonial": doc}
+
+@api_router.put("/admin/testimonials/{testimonial_id}")
+async def admin_update_testimonial(testimonial_id: str, update: TestimonialUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.testimonials.update_one({"id": testimonial_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Testimonial not found")
+    
+    return {"message": "Testimonial updated"}
+
+@api_router.delete("/admin/testimonials/{testimonial_id}")
+async def admin_delete_testimonial(testimonial_id: str, user: dict = Depends(verify_token)):
+    result = await db.testimonials.delete_one({"id": testimonial_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Testimonial not found")
+    return {"message": "Testimonial deleted"}
+
+# ----- Admin Skills Management -----
+
+@api_router.get("/admin/skills")
+async def admin_get_skills(user: dict = Depends(verify_token)):
+    skills = await db.skills.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return skills
+
+@api_router.post("/admin/skills")
+async def admin_create_skill(skill: SkillCreate, user: dict = Depends(verify_token)):
+    skill_obj = Skill(**skill.model_dump())
+    doc = skill_obj.model_dump()
+    await db.skills.insert_one(doc)
+    doc.pop("_id", None)
+    return {"message": "Skill created", "skill": doc}
+
+@api_router.put("/admin/skills/{skill_id}")
+async def admin_update_skill(skill_id: str, update: SkillUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.skills.update_one({"id": skill_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Skill not found")
+    
+    return {"message": "Skill updated"}
+
+@api_router.delete("/admin/skills/{skill_id}")
+async def admin_delete_skill(skill_id: str, user: dict = Depends(verify_token)):
+    result = await db.skills.delete_one({"id": skill_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Skill not found")
+    return {"message": "Skill deleted"}
+
+# ----- Admin Contact Messages -----
+
+@api_router.get("/admin/messages")
+async def admin_get_messages(user: dict = Depends(verify_token)):
+    messages = await db.contact_messages.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return messages
+
+@api_router.delete("/admin/messages/{message_id}")
+async def admin_delete_message(message_id: str, user: dict = Depends(verify_token)):
+    result = await db.contact_messages.delete_one({"id": message_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Message deleted"}
+
+# ----- File Upload -----
+
 @api_router.post("/admin/upload")
 async def admin_upload_file(file: UploadFile = File(...), user: dict = Depends(verify_token)):
     # Validate file type
@@ -451,249 +720,32 @@ async def admin_upload_file(file: UploadFile = File(...), user: dict = Depends(v
     # Return the URL path
     return {"url": f"/api/uploads/{filename}", "filename": filename}
 
-# ----- Newsletter Subscribers Management -----
+# ----- Dashboard Stats -----
 
-@api_router.get("/admin/subscribers")
-async def admin_get_subscribers(user: dict = Depends(verify_token)):
-    subscribers = await db.newsletter.find({}, {"_id": 0}).to_list(1000)
-    return subscribers
-
-@api_router.delete("/admin/subscribers/{email}")
-async def admin_delete_subscriber(email: str, user: dict = Depends(verify_token)):
-    result = await db.newsletter.delete_one({"email": email})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Subscriber not found")
-    return {"message": "Subscriber deleted"}
-
-@api_router.get("/admin/subscribers/export")
-async def admin_export_subscribers(user: dict = Depends(verify_token)):
-    subscribers = await db.newsletter.find({}, {"_id": 0}).to_list(1000)
-    # Return as CSV-ready format
-    csv_data = "email,subscribed_at\n"
-    for sub in subscribers:
-        csv_data += f"{sub.get('email', '')},{sub.get('subscribed_at', '')}\n"
-    return {"csv": csv_data, "count": len(subscribers)}
-
-# ----- Site Content Endpoints -----
-
-# Default content
-DEFAULT_CONTENT = {
-    "hero_title": "Clyde North's Best Tacos",
-    "hero_subtitle": "Taco's & Things",
-    "hero_headline": "Where Indian Spices Meet Mexican Soul",
-    "hero_tagline": "Experience the perfect fusion of two beloved cuisines. Fresh ingredients, bold flavours, and a whole lot of love in every bite.",
-    "hero_image": "/taco-truck-hero.png",
-    "hero_uber_eats_url": "https://www.ubereats.com/au/store/tacos-%26-things-clyde-north/s8w9QiFpTvSfc1teUJOU3w",
-    "hero_doordash_url": "https://www.doordash.com/store/taco's-&-things-clyde-north-27aborrar633898/",
-    "about_label": "Our Story",
-    "about_headline": "A Flavourful Journey of Two Cultures",
-    "about_text_1": "At Taco's & Things, we believe that the best flavours are born from unexpected combinations. Our culinary journey began with a simple idea: what if we brought together the aromatic spices of India with the vibrant, fresh flavours of Mexico?",
-    "about_text_2": "From our signature Tandoori Paneer Tacos to our crispy Southern Chicken creations, every dish tells a story of two cultures coming together in perfect harmony. We use only the freshest ingredients and authentic spices to create dishes that will take your taste buds on an unforgettable adventure.",
-    "gallery_label": "Gallery",
-    "gallery_headline": "A Feast for the Eyes",
-    "gallery_description": "Take a peek at our mouthwatering creations. Every dish is a work of art, crafted to delight both your eyes and taste buds.",
-    "gallery_images": [
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/n2cl794d_1.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/w0c8gqkq_2.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/q4q0k8fb_6.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/puod0awa_7.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/wdsnvmjf_3.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/18ze1ust_8.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/ypow9kz5_4.jpg",
-        "https://customer-assets.emergentagent.com/job_tacos-victoria/artifacts/o7eixpi3_5.jpg"
-    ],
-    "contact_label": "Visit Us",
-    "contact_headline": "Come Say Hello",
-    "contact_address": "Unit 3/47 Rainier Cres, Clyde North VIC 3978",
-    "contact_phone": "0439 406 042",
-    "contact_email": "hello@tacosandthings.com.au",
-    "contact_hours": "Open daily from 5:00 PM",
-    "contact_map_embed": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3146.5!2d145.35!3d-38.1!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad615e4b4ab4b71%3A0x4b9b4b9b4b9b4b9b!2sUnit%203%2F47%20Rainier%20Cres%2C%20Clyde%20North%20VIC%203978!5e0!3m2!1sen!2sau!4v1234567890",
-    "footer_tagline": "Where Indian Spices Meet Mexican Soul",
-    "footer_description": "Bringing you the best fusion cuisine in Clyde North. Fresh ingredients, bold flavors, unforgettable experiences.",
-    "facebook_url": "https://www.facebook.com/p/Tacos-Things-61575431517600/"
-}
-
-# Initialize site content
-@app.on_event("startup")
-async def init_site_content():
-    content = await db.site_content.find_one({})
-    if not content:
-        await db.site_content.insert_one(DEFAULT_CONTENT.copy())
-        logger.info("Site content initialized")
-
-# Get site content (public endpoint)
-@api_router.get("/content")
-async def get_site_content():
-    content = await db.site_content.find_one({}, {"_id": 0})
-    if not content:
-        return DEFAULT_CONTENT
-    return content
-
-# Get site content (admin)
-@api_router.get("/admin/content")
-async def admin_get_site_content(user: dict = Depends(verify_token)):
-    content = await db.site_content.find_one({}, {"_id": 0})
-    if not content:
-        return DEFAULT_CONTENT
-    return content
-
-# Update site content (admin)
-@api_router.put("/admin/content")
-async def admin_update_site_content(update: SiteContentUpdate, user: dict = Depends(verify_token)):
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No update data provided")
+@api_router.get("/admin/stats")
+async def admin_get_stats(user: dict = Depends(verify_token)):
+    portfolio_count = await db.portfolio.count_documents({})
+    services_count = await db.services.count_documents({})
+    testimonials_count = await db.testimonials.count_documents({})
+    messages_count = await db.contact_messages.count_documents({})
+    skills_count = await db.skills.count_documents({})
     
-    await db.site_content.update_one({}, {"$set": update_data}, upsert=True)
-    return {"message": "Content updated successfully"}
+    return {
+        "portfolio": portfolio_count,
+        "services": services_count,
+        "testimonials": testimonials_count,
+        "messages": messages_count,
+        "skills": skills_count
+    }
 
-# Seed data endpoint
-@api_router.post("/seed")
-async def seed_data():
-    # Clear existing menu items and reseed
-    await db.menu_items.delete_many({})
-    
-    # Seed menu items - Full menu from Taco's & Things
-    menu_items = [
-        # Most Ordered
-        {"id": str(uuid.uuid4()), "name": "Chips", "description": "Crispy, golden potato fries lightly seasoned with salt.", "price": 8.00, "category": "most-ordered", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chicken Tacos (3 tacos)", "description": "Perfectly spiced up chicken with tangy slaw and salsa", "price": 19.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Chicken (3 tacos)", "description": "Crispy fried chicken topped with fresh pico de gallo, drizzled with spicy sauce, and garnished with cilantro on soft tortillas.", "price": 20.90, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Fish (3 tacos)", "description": "Southern style fried tacos served with salsa", "price": 20.90, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Chicken Burger", "description": "Give it a go to this, you won't regret", "price": 20.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Moroccan", "description": "Fish done with Moroccan spice", "price": 17.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari", "description": "Make meal with chips & salad or brown rice & salad for an extra charge.", "price": 18.50, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Lemon Garlic Herb", "description": "Fish fillets done with garlic herb spice", "price": 14.99, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Small Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken and homemade tandoori mayonnaise and garlic sauce", "price": 22.80, "category": "most-ordered", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Mixture Platter", "description": "Mixture of Tacos, Calamari, Sliders, Fried Fish & Chips - Perfect option for 2 people to share.", "price": 75.00, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Special Paneer Wrap", "description": "Grilled paneer, onions, peppers, and a tangy chutney, wrapped in a soft tortilla.", "price": 19.99, "category": "most-ordered", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Calamari Chips", "description": "Crispy beer-battered fish with golden fries", "price": 10.40, "category": "most-ordered", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-
-        # Desserts
-        {"id": str(uuid.uuid4()), "name": "Gulab Jamun", "description": "Deep-fried milk and flour dumplings soaked in a sweet sugar syrup, often infused with cardamom and rose water.", "price": 7.00, "category": "desserts", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://customer-assets.emergentagent.com/job_fusion-tacos/artifacts/wygcvz0u_gulab%20jamun.jpg"},
-        {"id": str(uuid.uuid4()), "name": "Gulab Jamun with Ice Cream", "description": "Soft, syrup-soaked dumplings paired with creamy vanilla ice cream, garnished with slivers of pistachio and almond.", "price": 10.50, "category": "desserts", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://customer-assets.emergentagent.com/job_fusion-tacos/artifacts/nt8h3zc3_gulab%20jamun%20with%20ice%20cream.webp"},
-
-        # Snack Packs
-        {"id": str(uuid.uuid4()), "name": "Large Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken snack pack and homemade tandoori mayonnaise and garlic sauce", "price": 33.50, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://customer-assets.emergentagent.com/job_fusion-tacos/artifacts/fko3120w_Large%20tandoori%20chicken%20snack%20pack.webp"},
-        {"id": str(uuid.uuid4()), "name": "Junior Tandoori Snack Pack", "description": "Tandoori-seasoned meat atop crispy fries, drizzled with creamy and tangy sauces.", "price": 17.99, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://customer-assets.emergentagent.com/job_fusion-tacos/artifacts/wqk65iij_Junior%20tandoori%20snack%20pack.webp"},
-        {"id": str(uuid.uuid4()), "name": "Small Tandoori Chicken Snack Pack", "description": "Hot chips topped with shredded tandoori chicken and homemade tandoori mayonnaise and garlic sauce", "price": 22.80, "category": "snack-packs", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://customer-assets.emergentagent.com/job_fusion-tacos/artifacts/fyov1z6e_Small%20tandoori%20chicken%20snack%20pack.avif"},
-
-        # Fish & Chips
-        {"id": str(uuid.uuid4()), "name": "Tandoori Fish Chips and Salad", "description": "Grilled tandoori-seasoned fish fillet with crispy golden fries and a fresh mixed greens salad with red onions and cucumber.", "price": 22.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Moroccan Fish Chips and Salad", "description": "Seasoned fish fillet paired with crispy fries and a fresh garden salad with mixed greens, cucumber, and red onion.", "price": 21.90, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Moroccan Fish & Chips", "description": "Moroccan spices grilled fish served with hot chips and lemon wedge", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Lemon Herb Fish Chips and Salad", "description": "Grilled fish fillet with a lemon herb seasoning, served with crispy fries and a fresh salad of mixed greens, cucumber, and red onion.", "price": 21.90, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Crumbed Prawns Meal (5 prawns)", "description": "Golden crumbed prawns served with crispy fries, fresh greens, and a side of creamy dipping sauce.", "price": 23.00, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Sweet Chilli Prawn Skewers Meal", "description": "Four grilled prawns with sweet chilli sauce served with house salad and chips", "price": 23.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori Fish & Chips", "description": "Grilled tandoori-spiced fish fillet with crispy golden fries, garnished with fresh herbs, pickled onion and served with a lemon wedge.", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Lemon Herb Fish & Chips", "description": "Grilled lemon herb spiced fish served with hot chips and lemon", "price": 18.50, "category": "fish-chips", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-
-        # Bit of Indian
-        {"id": str(uuid.uuid4()), "name": "Chilli Chicken", "description": "Chicken fried and sautéed in spicy chili sauce, typically includes peppers and onions.", "price": 23.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Punjabi Chicken Noodles", "description": "Tender chicken pieces and stir-fried noodles mixed with bell peppers and garnished with chopped green onions.", "price": 21.90, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Special Chicken Wrap", "description": "Chicken taka tak wrap: Grilled chicken, lettuce, tomatoes, onions, and a tangy mint chutney in a soft tortilla.", "price": 22.00, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Special Paneer Wrap", "description": "Grilled paneer, onions, peppers, and a tangy chutney, wrapped in a soft tortilla.", "price": 19.99, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Paneer Pakora", "description": "Crispy, golden-brown paneer cubes fried in a spiced batter, garnished with fresh cilantro, served with tangy green chutney and pickled onions.", "price": 22.90, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Amritsari Fried Fish", "description": "Crispy fried fish marinated in Indian spices, garnished with cilantro, served with pickled onions and green chutney.", "price": 28.50, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Cheese Chilli", "description": "Fried cheese cubes typically tossed in a spicy chili sauce.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Bhel Puri", "description": "A mixture of puffed rice, potatoes, onions, and assorted chutneys, offering a spicy and tangy flavor.", "price": 15.00, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Achaari Chicken", "description": "Tender chicken pieces in a tangy, spiced curry sauce, garnished with fresh cilantro and julienned ginger.", "price": 26.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chicken Pakora", "description": "Crispy fried chicken pieces seasoned with Indian spices, garnished with cilantro. Served with tangy pickled onions and a side of green chutney.", "price": 26.50, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Achari Soya Chaap", "description": "Tender soya chaap pieces in a rich, spiced tomato gravy, garnished with fresh cilantro.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Paneer Achaari", "description": "Tangy paneer cubes in a spiced pickling sauce, garnished with fresh cilantro.", "price": 25.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Soya Chaap Wrap", "description": "Marinated soya chaap with fresh vegetables, wrapped in a soft flatbread and drizzled with a green chutney.", "price": 20.99, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Soy Malai Chaap", "description": "Tender pieces of soy chaap in a creamy and aromatic malai sauce, garnished with fresh herbs.", "price": 22.90, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Creamy Mushroom Chicken", "description": "Tender chicken breasts in a rich, creamy mushroom sauce, garnished with fresh parsley.", "price": 25.99, "category": "indian", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Crispy Soya Chaap Tacos", "description": "Crunchy taco shells filled with marinated soya chaap, fresh vegetables, and a zesty sauce, blending Indian flavors with a taco twist.", "price": 22.50, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Punjabi Noodle Tikki Burger", "description": "A spiced patty topped with crispy noodles, fresh lettuce, cucumber slices, and a hint of creamy sauce, all nestled in a sesame seed bun.", "price": 19.90, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Punjabi Veg Noodles", "description": "Stir-fried noodles with bell peppers, green onions, and Indian spices.", "price": 20.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chilli Lime Potatoes", "description": "Crispy potatoes typically seasoned with a blend of chili and lime, offering a tangy and spicy flavor profile.", "price": 20.50, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Veg Manchurian", "description": "Vegetable dumplings in a savory sauce, garnished with chopped scallions, offering a fusion of flavors.", "price": 23.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Egg Bhurji", "description": "Spiced scrambled eggs with onions, tomatoes, and herbs.", "price": 24.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Paneer Bhurji", "description": "Crumbled paneer cooked with spices, tomatoes, onions, and herbs, offering a savory and aromatic blend.", "price": 24.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tawa Roti", "description": "Soft, unleavened whole wheat flatbread, traditionally cooked on a griddle, perfect for pairing with various dishes.", "price": 3.50, "category": "indian", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Paneer Taka Tak", "description": "Paneer cubes sautéed with onion capsicum and tossed in homemade chilli sauce", "price": 23.99, "category": "indian", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chicken Taka Tak", "description": "Marinated chicken breast fillets sautéed with onion capsicum and tossed in homemade chilli sauce", "price": 24.99, "category": "indian", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400"},
-
-        # Tacos (set of 3)
-        {"id": str(uuid.uuid4()), "name": "Chicken Tacos (3 tacos)", "description": "Perfectly spiced up chicken with tangy slaw and salsa", "price": 19.50, "category": "tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-
-        # Tandoori Tacos (set of 3)
-        {"id": str(uuid.uuid4()), "name": "Tandoori Paneer Tacos (3 tacos)", "description": "Vegetarian. If you are a paneer lover this is for you", "price": 22.50, "category": "tandoori-tacos", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Crispy Soya Chaap Tacos", "description": "Crispy soya chaap marinated with Indian spices, served in a taco shell, typically includes lettuce, onions, and a zesty sauce.", "price": 18.00, "category": "tandoori-tacos", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori Chicken Tacos (3 tacos)", "description": "Why not try some Indian flavour in taco's", "price": 19.80, "category": "tandoori-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori Fish Tacos (3 tacos)", "description": "Little bit Indian flavoured taco's", "price": 19.80, "category": "tandoori-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
-
-        # Southern Tacos (set of 3)
-        {"id": str(uuid.uuid4()), "name": "Southern Style Crispy Prawn Tacos", "description": "Crispy prawns with fresh cilantro and tangy slaw, wrapped in soft tortillas.", "price": 22.50, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Chicken (3 tacos)", "description": "Crispy fried chicken topped with fresh pico de gallo, drizzled with spicy sauce, and garnished with cilantro on soft tortillas.", "price": 20.90, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Fish (3 tacos)", "description": "Southern style fried tacos served with salsa", "price": 20.90, "category": "southern-tacos", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=400"},
-
-        # Sharing Platter
-        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari Chips and Salad", "description": "Lightly fried salt and pepper calamari with seasoned chips and mixed salad, served with tartare sauce and a lemon wedge.", "price": 23.50, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Platter for 3", "description": "A variety platter featuring mini burgers, crispy fried chicken strips, breaded fish sticks, and soft tacos topped with diced tomatoes, cilantro, and a drizzle of sauce.", "price": 112.00, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Mixture of Tacos, Calamari, Sliders, Fried Fish & Chips", "description": "Perfect option for 2 people to share.", "price": 75.00, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Salt & Pepper Calamari", "description": "Make meal with chips & salad or brown rice & salad for an extra charge.", "price": 18.50, "category": "sharing", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-
-        # Burgers
-        {"id": str(uuid.uuid4()), "name": "Southern Chicken Burger", "description": "Give it a go to this, you won't regret", "price": 20.50, "category": "burgers", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Fish Burger", "description": "Crispy fried fish fillet topped with cheddar cheese, fresh cilantro, and tangy coleslaw, all nestled in a soft bun.", "price": 20.00, "category": "burgers", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"},
-
-        # Kid's
-        {"id": str(uuid.uuid4()), "name": "Calamari Chips", "description": "Crispy beer-battered fish with golden fries", "price": 10.40, "category": "kids", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Nuggets & Chips", "description": "Chicken nuggets typically served with crispy chips.", "price": 10.40, "category": "kids", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400"},
-
-        # Sides
-        {"id": str(uuid.uuid4()), "name": "Hot Salsa Loaded Chips", "description": "Crispy chips topped with hot salsa, jalapeños, spring onions, and corn relish.", "price": 13.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Water", "description": "Clear, refreshing bottled water.", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Panko Calamari Ring", "description": "Crispy panko-breaded calamari rings served with a side of fresh lemon wedges and garnished with herbs.", "price": 2.70, "category": "sides", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Garlic Aioli Sauce", "description": "A creamy, mayo-based dipping sauce typically featuring roasted garlic.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chipotle Mayo Sauce", "description": "Housemade chipotle mayo sauce, typically includes a blend of smoky chipotle peppers and creamy mayonnaise for a slightly spicy kick.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Mint Chutney", "description": "Typically includes fresh mint leaves, coriander leaves, ginger, and garlic.", "price": 3.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Greek Pitta Bread", "description": "Soft Greek pitta bread, typically enjoyed as an accompaniment, often paired with ingredients like feta cheese, olives, and a drizzle of olive oil.", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Large Chips", "description": "House-cut fries typically seasoned with a special deluxe seasoning blend.", "price": 15.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Family Chips", "description": "Hand-cut potato chips, typically seasoned with sea salt and spices, offering a crispy texture suitable for sharing.", "price": 21.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Southern Crumbed Prawn", "description": "Crispy, golden-brown shrimp coated in a Southern-style crumb, garnished with fresh parsley.", "price": 3.90, "category": "sides", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Papadum", "description": "Crispy Indian appetizer made from lentil flour and spices, perfect for snacking", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Sweet Chilli Mayo", "description": "Creamy mayonnaise blended with sweet and spicy chili, ideal for adding a touch of zest to various dishes.", "price": 3.00, "category": "sides", "is_vegetarian": True, "is_spicy": True, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori Mayo", "description": "A creamy mayonnaise infused with tandoori spices, offering a subtle blend of tangy and aromatic flavors, ideal as a dipping sauce.", "price": 3.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Chips", "description": "Crispy, golden potato fries lightly seasoned with salt.", "price": 8.00, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Soft Drinks", "description": "Refreshing carbonated beverages", "price": 4.50, "category": "sides", "is_vegetarian": True, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400"},
-
-        # Grilled Fish
-        {"id": str(uuid.uuid4()), "name": "Moroccan", "description": "Fish done with Moroccan spice", "price": 17.50, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Plain Fish Fillet", "description": "Simple grilled fish fillet", "price": 11.00, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": False, "is_popular": False, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Lemon Garlic Herb", "description": "Fish fillets done with garlic herb spice", "price": 14.99, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": False, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-        {"id": str(uuid.uuid4()), "name": "Tandoori", "description": "Tandoori marinated fish fillet", "price": 15.99, "category": "grilled-fish", "is_vegetarian": False, "is_spicy": True, "is_popular": True, "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400"},
-    ]
-    
-    await db.menu_items.insert_many(menu_items)
-    
-    # Seed reviews if not exist
-    reviews_count = await db.reviews.count_documents({})
-    if reviews_count == 0:
-        reviews = [
-            {"id": str(uuid.uuid4()), "author": "Sarah M.", "rating": 5, "text": "Every bite was a flavour explosion! The Tandoori Chicken Tacos are absolutely divine. Best fusion food in Melbourne!", "date": "2024-11-15"},
-            {"id": str(uuid.uuid4()), "author": "James T.", "rating": 5, "text": "Great food quality and exotic flavours. The Masala Fries are addictive! Will definitely be coming back.", "date": "2024-11-10"},
-            {"id": str(uuid.uuid4()), "author": "Priya K.", "rating": 5, "text": "Outstanding service and attention to detail. The fusion of Indian and Mexican cuisines is done perfectly.", "date": "2024-11-05"},
-            {"id": str(uuid.uuid4()), "author": "Michael R.", "rating": 5, "text": "Hidden gem in Clyde North! The Butter Chicken Bowl is restaurant quality. Highly recommend!", "date": "2024-10-28"},
-            {"id": str(uuid.uuid4()), "author": "Emma L.", "rating": 5, "text": "Family loved everything we ordered. The kids couldn't stop eating the Southern Chicken Tacos!", "date": "2024-10-20"},
-        ]
-        await db.reviews.insert_many(reviews)
-    
-    return {"message": "Menu updated successfully"}
-
-# Include the router in the main app
+# Include the router and mount uploads
 app.include_router(api_router)
-
-# Mount uploads directory for serving images
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -704,7 +756,3 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()

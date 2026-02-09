@@ -158,11 +158,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "GET/POST/PUT/DELETE /api/portfolio and /api/admin/portfolio endpoints"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/portfolio returns proper array with default portfolio project. Contains required fields (id, title, description, technologies, featured, order, created_at)."
   
   - task: "Services CRUD"
     implemented: true

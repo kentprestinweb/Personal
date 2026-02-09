@@ -1,0 +1,25 @@
+<svg viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradientText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14b8a6" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+    <linearGradient id="gradientIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon -->
+  <rect x="4" y="8" width="64" height="64" rx="14" fill="url(#gradientIcon)" />
+  <rect x="6" y="10" width="60" height="60" rx="12" fill="#0a0a0a" />
+  <path d="M26 28L18 40L26 52" stroke="#14b8a6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+  <path d="M46 28L54 40L46 52" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+  <path d="M30 30V50H34V42L42 50H48L37 40L47 30H41L34 38V30H30Z" fill="white" />
+  
+  <!-- Text -->
+  <text x="84" y="38" font-family="Inter, -apple-system, sans-serif" font-size="20" font-weight="700" fill="url(#gradientText)">Kent Angelo Prestin</text>
+  <text x="84" y="58" font-family="Inter, -apple-system, sans-serif" font-size="13" font-weight="400" fill="#71717a">Web Development</text>
+</svg>

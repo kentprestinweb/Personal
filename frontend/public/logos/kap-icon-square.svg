@@ -1,0 +1,22 @@
+<svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradientBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with gradient -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="url(#gradientBg)" />
+  
+  <!-- Inner background -->
+  <rect x="8" y="8" width="112" height="112" rx="20" fill="#0a0a0a" />
+  
+  <!-- Code brackets -->
+  <path d="M36 44L24 64L36 84" stroke="#14b8a6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+  <path d="M92 44L104 64L92 84" stroke="#f97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+  
+  <!-- K letter -->
+  <path d="M52 48V80H58V66L72 80H80L62 64L78 48H70L58 60V48H52Z" fill="white" />
+</svg>

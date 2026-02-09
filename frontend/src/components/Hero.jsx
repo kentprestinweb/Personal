@@ -1,161 +1,129 @@
-import { ChevronDown, MapPin, Clock, Star } from "lucide-react";
-import { Button } from "./ui/button";
-import { useContent } from "../context/ContentContext";
+import React from 'react';
+import { useContent } from '../context/ContentContext';
+import { ArrowDown, Code, Sparkles } from 'lucide-react';
 
-const Hero = () => {
+const LOGO_SQUARE = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/49lgwxck_kap-logo-square-128.png';
+
+export default function Hero() {
   const { content, loading } = useContent();
 
-  const scrollToMenu = () => {
-    const element = document.querySelector("#menu");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+  const handleScrollDown = () => {
+    const aboutSection = document.querySelector('#about');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   if (loading || !content) {
-    return <section id="home" className="min-h-screen pt-20 flex items-center hero-pattern" />;
+    return (
+      <section id="home" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-dark-50 via-white to-teal-50">
+        <div className="animate-pulse text-teal-500">Loading...</div>
+      </section>
+    );
   }
 
   return (
-    <section
-      id="home"
-      className="min-h-screen pt-20 flex items-center hero-pattern"
-      data-testid="hero-section"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="section-fade">
-            {/* Rating Badge */}
-            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md mb-6">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-4 h-4 fill-maize-gold text-maize-gold"
-                  />
-                ))}
-              </div>
-              <span className="font-sans text-sm text-deep-char font-medium">
-                5.0 • 41 Google Reviews
-              </span>
+    <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
+        {/* Animated gradient orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-electric-blue-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-coral-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left content */}
+          <div className="text-center lg:text-left space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white/80 text-sm">
+              <Sparkles size={16} className="text-coral-400" />
+              <span>Available for freelance work</span>
             </div>
 
-            {/* Main Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif text-deep-char leading-tight mb-4">
-              {content.hero_title ? (
-                <>
-                  {content.hero_title.split(' ').slice(0, -2).join(' ')}
-                  <br />
-                  <span className="text-saffron-blaze">{content.hero_title.split(' ').slice(-2).join(' ')}</span>
-                </>
-              ) : (
-                <>
-                  Clyde North's
-                  <br />
-                  <span className="text-saffron-blaze">Best Tacos</span>
-                </>
-              )}
-            </h1>
-            <p className="font-serif text-2xl text-deep-char/80 mb-4">{content.hero_subtitle || "Taco's & Things"}</p>
+            {/* Main heading */}
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+                Hi, I'm{' '}
+                <span className="text-gradient">{content.hero_name?.split(' ')[0] || 'Kent'}</span>
+              </h1>
+              <p className="text-xl sm:text-2xl md:text-3xl text-white/80 font-light">
+                {content.hero_title || 'Web Developer'}
+              </p>
+            </div>
 
-            {/* Subheading - Dynamic */}
-            <p className="text-lg md:text-xl text-deep-char/70 font-sans leading-relaxed mb-8 max-w-lg">
-              {content.hero_tagline}
+            {/* Subtitle */}
+            <p className="text-lg text-white/60 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              {content.hero_tagline || 'I transform ideas into stunning digital experiences.'}
             </p>
 
-            {/* CTA Buttons - Dynamic URLs */}
-            <div className="flex flex-wrap gap-4 mb-6">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <a
-                href={content.hero_uber_eats_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-[#06C167] text-white px-6 py-4 rounded-full font-bold hover:bg-[#05a857] transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-                data-testid="order-ubereats-btn"
+                href={content.hero_cta_url || '#portfolio'}
+                className="group px-8 py-4 bg-gradient-to-r from-teal-500 to-electric-blue-500 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4a9.6 9.6 0 110 19.2 9.6 9.6 0 010-19.2zm0 3.6a6 6 0 100 12 6 6 0 000-12zm0 2.4a3.6 3.6 0 110 7.2 3.6 3.6 0 010-7.2z"/>
-                </svg>
-                Order on Uber Eats
+                <Code size={20} />
+                {content.hero_cta_text || 'View My Work'}
               </a>
               <a
-                href={content.hero_doordash_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-[#FF3008] text-white px-6 py-4 rounded-full font-bold hover:bg-[#e62b07] transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-                data-testid="order-doordash-btn"
+                href="#contact"
+                className="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300 flex items-center justify-center"
               >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.071 8.409a6.09 6.09 0 00-5.396-3.228H.584A.589.589 0 00.17 6.184L3.894 9.93a1.752 1.752 0 001.242.516h12.049a1.554 1.554 0 11.031 3.108H8.91a.589.589 0 00-.415 1.003l3.725 3.747a1.75 1.75 0 001.242.516h3.757c4.887 0 8.584-5.225 5.852-10.41z"/>
-                </svg>
-                Order on DoorDash
+                Get In Touch
               </a>
             </div>
-            
-            <Button
-              onClick={scrollToMenu}
-              variant="outline"
-              className="bg-transparent border-2 border-deep-char text-deep-char px-8 py-4 rounded-full font-bold hover:bg-deep-char hover:text-white transition-all duration-300 text-base mb-10"
-              data-testid="view-menu-btn"
-            >
-              View Menu
-            </Button>
 
-            {/* Info Pills */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full">
-                <MapPin className="w-4 h-4 text-saffron-blaze" />
-                <span className="font-sans text-sm text-deep-char">
-                  Clyde North, VIC
-                </span>
+            {/* Stats */}
+            <div className="flex flex-wrap gap-8 justify-center lg:justify-start pt-8">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{content.about_years_experience || '2+'}</p>
+                <p className="text-white/60 text-sm">Years Experience</p>
               </div>
-              <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full">
-                <Clock className="w-4 h-4 text-saffron-blaze" />
-                <span className="font-sans text-sm text-deep-char">
-                  Opens 5:00 PM
-                </span>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{content.about_projects_completed || '10+'}</p>
+                <p className="text-white/60 text-sm">Projects Completed</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white">{content.about_clients_satisfied || '5+'}</p>
+                <p className="text-white/60 text-sm">Happy Clients</p>
               </div>
             </div>
           </div>
 
-          {/* Right Content - Hero Image */}
-          <div className="relative section-fade" style={{ animationDelay: "0.2s" }}>
+          {/* Right content - Logo/Image */}
+          <div className="hidden lg:flex items-center justify-center">
             <div className="relative">
-              {/* Main Image - Dynamic */}
-              <div className="organic-shape overflow-hidden shadow-2xl">
-                <img
-                  src={content.hero_image}
-                  alt="Taco's & Things Food Truck"
-                  className="w-full h-[400px] md:h-[500px] object-cover"
-                  data-testid="hero-image"
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-electric-blue-500 to-coral-500 rounded-3xl blur-2xl opacity-30 scale-110" />
+              
+              {/* Logo container */}
+              <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-3xl p-12">
+                <img 
+                  src={content.hero_image || LOGO_SQUARE} 
+                  alt="Kent Angelo Prestin" 
+                  className="w-64 h-64 object-contain"
                 />
               </div>
-
-              {/* Floating Card - Indian-Mexican Fusion */}
-              <div className="absolute -top-4 -right-4 bg-maize-gold p-4 rounded-2xl shadow-xl hidden md:block">
-                <p className="font-serif text-deep-char text-lg">
-                  Indian-Mexican
-                  <br />
-                  Fusion
-                </p>
-              </div>
-
-              {/* Background Decoration */}
-              <div className="absolute -z-10 top-10 right-10 w-full h-full bg-maize-gold/30 organic-shape-alt"></div>
             </div>
           </div>
         </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center animate-bounce">
-          <span className="font-sans text-sm text-deep-char/60 mb-2">
-            Scroll to explore
-          </span>
-          <ChevronDown className="w-5 h-5 text-saffron-blaze" />
-        </div>
       </div>
+
+      {/* Scroll indicator */}
+      <button
+        onClick={handleScrollDown}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition-colors cursor-pointer"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs uppercase tracking-widest">Scroll</span>
+          <ArrowDown size={20} className="animate-bounce" />
+        </div>
+      </button>
     </section>
   );
-};
-
-export default Hero;
+}

@@ -1,185 +1,363 @@
+#!/usr/bin/env python3
+"""
+Backend API Test Suite for Kent Angelo Prestin Portfolio Website
+Tests all API endpoints including public and admin routes
+"""
+
 import requests
-import sys
 import json
-from datetime import datetime
+import sys
+from typing import Dict, Any
 
-class RestaurantAPITester:
-    def __init__(self, base_url="https://prestin-works.preview.emergentagent.com"):
-        self.base_url = base_url
-        self.api_url = f"{base_url}/api"
-        self.tests_run = 0
-        self.tests_passed = 0
-        self.failed_tests = []
+# Backend URL from frontend environment
+BACKEND_URL = "https://prestin-works.preview.emergentagent.com/api"
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
-        """Run a single API test"""
-        url = f"{self.api_url}/{endpoint}"
-        if headers is None:
-            headers = {'Content-Type': 'application/json'}
+# Admin credentials for testing
+ADMIN_USERNAME = "kentprestin"
+ADMIN_PASSWORD = "portfolio2025"
 
-        self.tests_run += 1
-        print(f"\n🔍 Testing {name}...")
-        print(f"   URL: {url}")
-        
+class PortfolioAPITester:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.admin_token = None
+        self.test_results = []
+
+    def log_test(self, test_name: str, success: bool, details: str = ""):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        result = {
+            "test": test_name,
+            "status": status,
+            "success": success,
+            "details": details
+        }
+        self.test_results.append(result)
+        print(f"{status}: {test_name}")
+        if details and not success:
+            print(f"  Details: {details}")
+
+    def make_request(self, method: str, endpoint: str, data: Dict[Any, Any] = None, 
+                    headers: Dict[str, str] = None, files: Dict[str, Any] = None) -> requests.Response:
+        """Make HTTP request with error handling"""
+        url = f"{self.base_url}{endpoint}"
         try:
-            if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=10)
-            elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
-
-            success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                print(f"✅ Passed - Status: {response.status_code}")
-                try:
-                    response_data = response.json()
-                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
-                except:
-                    print(f"   Response: {response.text[:200]}...")
+            if method.upper() == "GET":
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method.upper() == "POST":
+                if files:
+                    response = requests.post(url, data=data, files=files, headers=headers, timeout=30)
+                else:
+                    response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method.upper() == "PUT":
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method.upper() == "DELETE":
+                response = requests.delete(url, headers=headers, timeout=30)
             else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                print(f"   Response: {response.text[:200]}...")
-                self.failed_tests.append({
-                    "test": name,
-                    "endpoint": endpoint,
-                    "expected": expected_status,
-                    "actual": response.status_code,
-                    "response": response.text[:200]
-                })
+                raise ValueError(f"Unsupported method: {method}")
+            return response
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed for {url}: {str(e)}")
+            raise
 
-            return success, response.json() if success and response.text else {}
-
-        except Exception as e:
-            print(f"❌ Failed - Error: {str(e)}")
-            self.failed_tests.append({
-                "test": name,
-                "endpoint": endpoint,
-                "error": str(e)
-            })
-            return False, {}
-
-    def test_root_endpoint(self):
+    def test_api_root(self):
         """Test API root endpoint"""
-        return self.run_test("API Root", "GET", "", 200)
+        try:
+            response = self.make_request("GET", "/")
+            if response.status_code == 200:
+                data = response.json()
+                if "Kent Angelo Prestin" in data.get("message", ""):
+                    self.log_test("API Root", True, f"Response: {data}")
+                else:
+                    self.log_test("API Root", False, f"Unexpected message: {data}")
+            else:
+                self.log_test("API Root", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("API Root", False, f"Exception: {str(e)}")
 
-    def test_seed_data(self):
-        """Test seeding data"""
-        return self.run_test("Seed Data", "POST", "seed", 200)
+    def test_get_content(self):
+        """Test GET /api/content endpoint"""
+        try:
+            response = self.make_request("GET", "/content")
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["hero_name", "hero_title", "about_bio", "contact_email"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields and data.get("hero_name") == "Kent Angelo Prestin":
+                    self.log_test("GET /content", True, f"Content loaded with {len(data)} fields")
+                else:
+                    self.log_test("GET /content", False, f"Missing fields: {missing_fields} or incorrect hero_name")
+            else:
+                self.log_test("GET /content", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /content", False, f"Exception: {str(e)}")
 
-    def test_get_menu(self):
-        """Test getting full menu"""
-        return self.run_test("Get Full Menu", "GET", "menu", 200)
+    def test_admin_login(self):
+        """Test POST /api/admin/login"""
+        try:
+            login_data = {
+                "username": ADMIN_USERNAME,
+                "password": ADMIN_PASSWORD
+            }
+            response = self.make_request("POST", "/admin/login", data=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "token" in data and data.get("message") == "Login successful":
+                    self.admin_token = data["token"]
+                    self.log_test("POST /admin/login", True, "Login successful, token received")
+                else:
+                    self.log_test("POST /admin/login", False, f"Invalid response format: {data}")
+            else:
+                self.log_test("POST /admin/login", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("POST /admin/login", False, f"Exception: {str(e)}")
 
-    def test_get_menu_by_category(self):
-        """Test getting menu by category"""
-        categories = ["tacos", "curries", "fusion", "sides", "drinks"]
-        for category in categories:
-            success, _ = self.run_test(f"Get {category.title()} Menu", "GET", f"menu/{category}", 200)
-            if not success:
-                return False
-        return True
+    def test_get_portfolio(self):
+        """Test GET /api/portfolio endpoint"""
+        try:
+            response = self.make_request("GET", "/portfolio")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    if len(data) > 0:
+                        # Check if portfolio items have required fields
+                        first_item = data[0]
+                        required_fields = ["id", "title", "description"]
+                        missing_fields = [field for field in required_fields if field not in first_item]
+                        
+                        if not missing_fields:
+                            self.log_test("GET /portfolio", True, f"Portfolio loaded with {len(data)} projects")
+                        else:
+                            self.log_test("GET /portfolio", False, f"Missing fields in portfolio items: {missing_fields}")
+                    else:
+                        # Empty array is acceptable for new portfolio
+                        self.log_test("GET /portfolio", True, "Empty portfolio array returned")
+                else:
+                    self.log_test("GET /portfolio", False, f"Expected array, got: {type(data)}")
+            else:
+                self.log_test("GET /portfolio", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /portfolio", False, f"Exception: {str(e)}")
 
-    def test_create_order(self):
-        """Test creating an order"""
-        order_data = {
-            "customer_name": "Test Customer",
-            "customer_phone": "0400000000",
-            "customer_email": "test@example.com",
-            "order_type": "takeaway",
-            "items": [
-                {
-                    "menu_item_id": "test-item-1",
-                    "name": "Test Taco",
-                    "price": 8.50,
-                    "quantity": 2
-                }
-            ],
-            "total": 17.00,
-            "notes": "Test order"
-        }
-        success, response = self.run_test("Create Order", "POST", "orders", 201, order_data)
-        if success and 'id' in response:
-            # Test getting the created order
-            order_id = response['id']
-            return self.run_test("Get Order", "GET", f"orders/{order_id}", 200)
-        return success
+    def test_get_services(self):
+        """Test GET /api/services endpoint"""
+        try:
+            response = self.make_request("GET", "/services")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    if len(data) > 0:
+                        # Check if service items have required fields
+                        first_item = data[0]
+                        required_fields = ["id", "title", "description", "icon"]
+                        missing_fields = [field for field in required_fields if field not in first_item]
+                        
+                        if not missing_fields:
+                            self.log_test("GET /services", True, f"Services loaded with {len(data)} items")
+                        else:
+                            self.log_test("GET /services", False, f"Missing fields in service items: {missing_fields}")
+                    else:
+                        self.log_test("GET /services", True, "Empty services array returned")
+                else:
+                    self.log_test("GET /services", False, f"Expected array, got: {type(data)}")
+            else:
+                self.log_test("GET /services", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /services", False, f"Exception: {str(e)}")
 
-    def test_newsletter_subscription(self):
-        """Test newsletter subscription"""
-        # Test valid subscription
-        email_data = {"email": f"test_{datetime.now().strftime('%H%M%S')}@example.com"}
-        success, _ = self.run_test("Newsletter Subscribe", "POST", "newsletter", 201, email_data)
-        
-        # Test duplicate subscription (should fail)
-        if success:
-            self.run_test("Newsletter Duplicate", "POST", "newsletter", 400, email_data)
-        
-        return success
+    def test_get_skills(self):
+        """Test GET /api/skills endpoint"""
+        try:
+            response = self.make_request("GET", "/skills")
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    if len(data) > 0:
+                        # Check if skill items have required fields
+                        first_item = data[0]
+                        required_fields = ["id", "name", "category"]
+                        missing_fields = [field for field in required_fields if field not in first_item]
+                        
+                        if not missing_fields:
+                            self.log_test("GET /skills", True, f"Skills loaded with {len(data)} items")
+                        else:
+                            self.log_test("GET /skills", False, f"Missing fields in skill items: {missing_fields}")
+                    else:
+                        self.log_test("GET /skills", True, "Empty skills array returned")
+                else:
+                    self.log_test("GET /skills", False, f"Expected array, got: {type(data)}")
+            else:
+                self.log_test("GET /skills", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /skills", False, f"Exception: {str(e)}")
 
-    def test_contact_form(self):
-        """Test contact form submission"""
-        contact_data = {
-            "name": "Test User",
-            "email": "test@example.com",
-            "phone": "0400000000",
-            "message": "This is a test message from the API test suite."
-        }
-        return self.run_test("Contact Form", "POST", "contact", 201, contact_data)
+    def test_contact_submission(self):
+        """Test POST /api/contact endpoint"""
+        try:
+            contact_data = {
+                "name": "Kent Angelo Test User",
+                "email": "test@kentangelo.dev",
+                "subject": "API Testing Contact Form",
+                "message": "This is a test message to verify the contact form API endpoint is working correctly."
+            }
+            response = self.make_request("POST", "/contact", data=contact_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Check if response contains the submitted data
+                if (data.get("name") == contact_data["name"] and 
+                    data.get("email") == contact_data["email"] and
+                    "id" in data and "created_at" in data):
+                    self.log_test("POST /contact", True, f"Contact message submitted successfully, ID: {data['id']}")
+                else:
+                    self.log_test("POST /contact", False, f"Unexpected response format: {data}")
+            else:
+                self.log_test("POST /contact", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("POST /contact", False, f"Exception: {str(e)}")
 
-    def test_get_reviews(self):
-        """Test getting reviews"""
-        return self.run_test("Get Reviews", "GET", "reviews", 200)
+    def test_admin_stats(self):
+        """Test GET /api/admin/stats endpoint (authenticated)"""
+        if not self.admin_token:
+            self.log_test("GET /admin/stats", False, "No admin token available")
+            return
+
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = self.make_request("GET", "/admin/stats", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_keys = ["portfolio", "services", "testimonials", "messages", "skills"]
+                missing_keys = [key for key in expected_keys if key not in data]
+                
+                if not missing_keys:
+                    self.log_test("GET /admin/stats", True, f"Stats retrieved: {data}")
+                else:
+                    self.log_test("GET /admin/stats", False, f"Missing keys in stats: {missing_keys}")
+            else:
+                self.log_test("GET /admin/stats", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /admin/stats", False, f"Exception: {str(e)}")
+
+    def test_admin_content_update(self):
+        """Test PUT /api/admin/content endpoint (authenticated)"""
+        if not self.admin_token:
+            self.log_test("PUT /admin/content", False, "No admin token available")
+            return
+
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            # Test with a simple content update
+            content_update = {
+                "hero_subtitle": "API Test Updated Subtitle",
+                "about_bio": "This bio was updated via API test to verify the content management system is working."
+            }
+            response = self.make_request("PUT", "/admin/content", data=content_update, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("message") == "Content updated successfully":
+                    # Verify the update by fetching content again
+                    verify_response = self.make_request("GET", "/content")
+                    if verify_response.status_code == 200:
+                        verify_data = verify_response.json()
+                        if (verify_data.get("hero_subtitle") == content_update["hero_subtitle"] and
+                            verify_data.get("about_bio") == content_update["about_bio"]):
+                            self.log_test("PUT /admin/content", True, "Content updated and verified successfully")
+                        else:
+                            self.log_test("PUT /admin/content", False, "Content update not reflected in GET /content")
+                    else:
+                        self.log_test("PUT /admin/content", False, "Failed to verify content update")
+                else:
+                    self.log_test("PUT /admin/content", False, f"Unexpected response: {data}")
+            else:
+                self.log_test("PUT /admin/content", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("PUT /admin/content", False, f"Exception: {str(e)}")
+
+    def test_admin_token_verification(self):
+        """Test admin token verification endpoint"""
+        if not self.admin_token:
+            self.log_test("GET /admin/verify", False, "No admin token available")
+            return
+
+        try:
+            headers = {"Authorization": f"Bearer {self.admin_token}"}
+            response = self.make_request("GET", "/admin/verify", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("valid") is True and data.get("username") == ADMIN_USERNAME:
+                    self.log_test("GET /admin/verify", True, f"Token verified for user: {data['username']}")
+                else:
+                    self.log_test("GET /admin/verify", False, f"Invalid token verification response: {data}")
+            else:
+                self.log_test("GET /admin/verify", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            self.log_test("GET /admin/verify", False, f"Exception: {str(e)}")
 
     def run_all_tests(self):
         """Run all API tests"""
-        print("🚀 Starting Restaurant API Tests...")
-        print(f"Testing against: {self.base_url}")
+        print(f"🚀 Starting Kent Angelo Prestin Portfolio API Tests")
+        print(f"Backend URL: {self.base_url}")
+        print("=" * 60)
         
-        # Test basic connectivity
-        if not self.test_root_endpoint()[0]:
-            print("❌ Cannot connect to API. Stopping tests.")
-            return False
-
-        # Seed data first
-        print("\n📊 Seeding test data...")
-        self.test_seed_data()
-
-        # Test all endpoints
-        print("\n🍽️ Testing Menu Endpoints...")
-        self.test_get_menu()
-        self.test_get_menu_by_category()
-
-        print("\n📝 Testing Order Endpoints...")
-        self.test_create_order()
-
-        print("\n📧 Testing Newsletter Endpoint...")
-        self.test_newsletter_subscription()
-
-        print("\n💬 Testing Contact Endpoint...")
-        self.test_contact_form()
-
-        print("\n⭐ Testing Reviews Endpoint...")
-        self.test_get_reviews()
-
+        # Test public endpoints first
+        self.test_api_root()
+        self.test_get_content()
+        self.test_get_portfolio()
+        self.test_get_services()
+        self.test_get_skills()
+        self.test_contact_submission()
+        
+        # Test admin authentication
+        self.test_admin_login()
+        
+        # Test authenticated endpoints
+        self.test_admin_token_verification()
+        self.test_admin_stats()
+        self.test_admin_content_update()
+        
         # Print summary
-        print(f"\n📊 Test Summary:")
-        print(f"   Tests Run: {self.tests_run}")
-        print(f"   Tests Passed: {self.tests_passed}")
-        print(f"   Tests Failed: {self.tests_run - self.tests_passed}")
-        print(f"   Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
-
-        if self.failed_tests:
-            print(f"\n❌ Failed Tests:")
-            for test in self.failed_tests:
-                error_msg = test.get('error', f"Status {test.get('actual')} != {test.get('expected')}")
-                print(f"   - {test['test']}: {error_msg}")
-
-        return self.tests_passed == self.tests_run
-
-def main():
-    tester = RestaurantAPITester()
-    success = tester.run_all_tests()
-    return 0 if success else 1
+        print("=" * 60)
+        print("📊 TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in self.test_results if result["success"])
+        total = len(self.test_results)
+        
+        for result in self.test_results:
+            print(f"{result['status']}: {result['test']}")
+        
+        print("=" * 60)
+        print(f"✅ Passed: {passed}/{total}")
+        print(f"❌ Failed: {total - passed}/{total}")
+        
+        if total > 0:
+            success_rate = (passed / total) * 100
+            print(f"📈 Success Rate: {success_rate:.1f}%")
+        
+        return passed == total
 
 if __name__ == "__main__":
-    sys.exit(main())
+    tester = PortfolioAPITester()
+    
+    print("Kent Angelo Prestin Portfolio Website API Test Suite")
+    print("=" * 60)
+    
+    try:
+        all_passed = tester.run_all_tests()
+        if all_passed:
+            print("\n🎉 All tests passed! Backend API is working correctly.")
+            sys.exit(0)
+        else:
+            print("\n⚠️  Some tests failed. Check the details above.")
+            sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n\n⛔ Tests interrupted by user.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n💥 Test suite failed with error: {str(e)}")
+        sys.exit(1)

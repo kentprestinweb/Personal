@@ -50,11 +50,9 @@ export default function AdminLogin() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img 
-            src={LOGO_SQUARE} 
-            alt="KAP Logo" 
-            className="w-20 h-20 mx-auto mb-4"
-          />
+          <div className="flex justify-center mb-4">
+            <LogoSquare className="w-20 h-20" />
+          </div>
           <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
           <p className="text-dark-400 mt-2">Sign in to manage your portfolio</p>
         </div>

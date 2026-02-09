@@ -918,7 +918,10 @@ const babelMetadataPlugin = ({ types: t }) => {
   /**
    * Detects if we're inside an array iteration (.map(), etc.) and extracts context
    */
-  function getArrayIterationContext(exprPath, state) {
+  function getArrayIterationContext(exprPath, state, depth = 0) {
+    // Prevent infinite recursion
+    if (depth > 10) return null;
+
     // Find the parent .map() or similar call
     const callExprParent = exprPath.findParent((p) => {
       if (!p.isCallExpression()) return false;
@@ -978,18 +981,21 @@ const babelMetadataPlugin = ({ types: t }) => {
         isEditable = arrayInfo.isEditable && arrayInfo.valueType === "array";
       }
     } else if (t.isMemberExpression(arrayNode)) {
-      // Handle cases like data.items.map(...)
-      const memberInfo = analyzeMemberExpression(
-        callExprParent.get("callee.object"),
-        state
-      );
-      if (memberInfo) {
-        arrayVar = memberInfo.varName;
-        arrayFile = memberInfo.file || null;
-        absFile = memberInfo.absFile || null;
-        arrayLine = memberInfo.line || null;
-        // Array within object is more complex, mark as not editable for now
-        isEditable = false;
+      // Handle cases like data.items.map(...) - skip deep analysis to avoid recursion
+      try {
+        const calleePath = callExprParent.get("callee.object");
+        if (calleePath && calleePath.node) {
+          const memberInfo = analyzeMemberExpression(calleePath, state, depth + 1);
+          if (memberInfo) {
+            arrayVar = memberInfo.varName;
+            arrayFile = memberInfo.file || null;
+            absFile = memberInfo.absFile || null;
+            arrayLine = memberInfo.line || null;
+            isEditable = false;
+          }
+        }
+      } catch (e) {
+        // Skip on errors to prevent crashes
       }
     }
 

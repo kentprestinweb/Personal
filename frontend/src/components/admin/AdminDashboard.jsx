@@ -19,8 +19,8 @@ import {
   Users,
   MessageSquare
 } from 'lucide-react';
+import { LogoIcon } from '../Logo';
 
-const LOGO_HORIZONTAL = 'https://customer-assets.emergentagent.com/job_6d5c6037-1467-4fe5-9f6d-01bc7317145d/artifacts/f2ny4osy_kap-horizontal-logo.png';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function AdminDashboard() {

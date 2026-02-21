@@ -39,6 +39,13 @@ export default function AdminDashboard() {
   const [testimonials, setTestimonials] = useState([]);
   const [skills, setSkills] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [sectionVisibility, setSectionVisibility] = useState({
+    about: true,
+    services: true,
+    portfolio: true,
+    testimonials: true,
+    contact: true
+  });
 
   const token = localStorage.getItem('admin_token');
 

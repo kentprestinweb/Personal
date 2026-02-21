@@ -73,14 +73,15 @@ export default function AdminDashboard() {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const [statsRes, contentRes, portfolioRes, servicesRes, testimonialsRes, skillsRes, messagesRes] = await Promise.all([
+      const [statsRes, contentRes, portfolioRes, servicesRes, testimonialsRes, skillsRes, messagesRes, visibilityRes] = await Promise.all([
         fetch(`${BACKEND_URL}/api/admin/stats`, { headers }),
         fetch(`${BACKEND_URL}/api/admin/content`, { headers }),
         fetch(`${BACKEND_URL}/api/admin/portfolio`, { headers }),
         fetch(`${BACKEND_URL}/api/admin/services`, { headers }),
         fetch(`${BACKEND_URL}/api/admin/testimonials`, { headers }),
         fetch(`${BACKEND_URL}/api/admin/skills`, { headers }),
-        fetch(`${BACKEND_URL}/api/admin/messages`, { headers })
+        fetch(`${BACKEND_URL}/api/admin/messages`, { headers }),
+        fetch(`${BACKEND_URL}/api/admin/section-visibility`, { headers })
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -90,6 +91,7 @@ export default function AdminDashboard() {
       if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json());
       if (skillsRes.ok) setSkills(await skillsRes.json());
       if (messagesRes.ok) setMessages(await messagesRes.json());
+      if (visibilityRes.ok) setSectionVisibility(await visibilityRes.json());
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {

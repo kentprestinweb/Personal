@@ -563,6 +563,30 @@ async def update_admin_credentials(update: AdminCredentialsUpdate, user: dict = 
     
     return {"message": "Credentials updated successfully"}
 
+# ----- Section Visibility Management -----
+
+@api_router.get("/admin/section-visibility")
+async def admin_get_section_visibility(user: dict = Depends(verify_token)):
+    visibility = await db.section_visibility.find_one({}, {"_id": 0})
+    if not visibility:
+        return DEFAULT_SECTION_VISIBILITY
+    return visibility
+
+@api_router.put("/admin/section-visibility")
+async def admin_update_section_visibility(update: SectionVisibilityUpdate, user: dict = Depends(verify_token)):
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    existing = await db.section_visibility.find_one({})
+    if existing:
+        await db.section_visibility.update_one({}, {"$set": update_data})
+    else:
+        new_visibility = {**DEFAULT_SECTION_VISIBILITY, **update_data}
+        await db.section_visibility.insert_one(new_visibility)
+    
+    return {"message": "Section visibility updated successfully"}
+
 # ----- Admin Content Management -----
 
 @api_router.get("/admin/content")

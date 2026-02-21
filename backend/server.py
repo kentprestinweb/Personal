@@ -326,34 +326,34 @@ DEFAULT_CONTENT = {
     "footer_copyright": "© 2025 Kent Angelo Prestin. All rights reserved."
 }
 
-# Default services
+# Default services - Focused on Tradies & Local Business
 DEFAULT_SERVICES = [
     {
         "id": str(uuid.uuid4()),
-        "title": "Website Development",
-        "description": "Custom-built websites tailored to your business needs. From landing pages to full-featured web applications.",
-        "icon": "globe",
+        "title": "Tradie Websites",
+        "description": "Professional, mobile-friendly websites built specifically for tradies. Show off your work, build trust, and get more enquiries.",
+        "icon": "wrench",
         "order": 1
     },
     {
         "id": str(uuid.uuid4()),
-        "title": "Responsive Design",
-        "description": "Websites that look and work perfectly on all devices - desktop, tablet, and mobile.",
-        "icon": "smartphone",
+        "title": "Local SEO",
+        "description": "Get found when locals search for your services. I'll optimise your site to rank in Google Maps and local search results.",
+        "icon": "map-pin",
         "order": 2
     },
     {
         "id": str(uuid.uuid4()),
-        "title": "E-Commerce Solutions",
-        "description": "Online stores with secure payment processing, inventory management, and customer accounts.",
-        "icon": "shopping-cart",
+        "title": "Google Business Setup",
+        "description": "Complete Google Business Profile setup and optimisation to get you showing up in local searches and Google Maps.",
+        "icon": "search",
         "order": 3
     },
     {
         "id": str(uuid.uuid4()),
-        "title": "Website Maintenance",
-        "description": "Ongoing support, updates, and improvements to keep your website running smoothly.",
-        "icon": "settings",
+        "title": "Lead Generation",
+        "description": "Websites designed to convert visitors into customers. Click-to-call buttons, contact forms, and quote requests that work.",
+        "icon": "phone",
         "order": 4
     }
 ]

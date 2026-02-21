@@ -17,7 +17,9 @@ import {
   Mail,
   Code,
   Users,
-  MessageSquare
+  MessageSquare,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { LogoIcon } from '../Logo';
 

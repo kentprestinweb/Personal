@@ -106,7 +106,7 @@ export function LogoNavbar({ className = "h-10" }) {
         <div className="text-lg font-bold bg-gradient-to-r from-teal-600 via-electric-blue-600 to-coral-500 bg-clip-text text-transparent">
           Kent Angelo Prestin
         </div>
-        <div className="text-xs text-dark-400 -mt-0.5">Web Development</div>
+        <div className="text-xs text-dark-400 -mt-0.5">Websites for Local Business</div>
       </div>
     </div>
   );
@@ -121,7 +121,7 @@ export function LogoFooter({ className = "h-10" }) {
         <div className="text-lg font-bold bg-gradient-to-r from-teal-400 via-electric-blue-400 to-coral-400 bg-clip-text text-transparent">
           Kent Angelo Prestin
         </div>
-        <div className="text-xs text-dark-500 -mt-0.5">Web Development</div>
+        <div className="text-xs text-dark-500 -mt-0.5">Websites for Local Business</div>
       </div>
     </div>
   );

@@ -215,6 +215,7 @@ export default function AdminDashboard() {
           ) : (
             <>
               {activeTab === 'dashboard' && <DashboardTab stats={stats} messages={messages} />}
+              {activeTab === 'visibility' && <VisibilityTab visibility={sectionVisibility} token={token} onUpdate={fetchData} />}
               {activeTab === 'content' && <ContentTab content={content} token={token} onUpdate={fetchData} />}
               {activeTab === 'portfolio' && <PortfolioTab portfolio={portfolio} token={token} onUpdate={fetchData} />}
               {activeTab === 'services' && <ServicesTab services={services} token={token} onUpdate={fetchData} />}

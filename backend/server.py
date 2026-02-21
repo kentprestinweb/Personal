@@ -188,6 +188,30 @@ class AdminCredentialsUpdate(BaseModel):
     new_username: Optional[str] = None
     new_password: Optional[str] = None
 
+# ----- Section Visibility Model -----
+class SectionVisibility(BaseModel):
+    about: bool = True
+    services: bool = True
+    portfolio: bool = True
+    testimonials: bool = True
+    contact: bool = True
+
+class SectionVisibilityUpdate(BaseModel):
+    about: Optional[bool] = None
+    services: Optional[bool] = None
+    portfolio: Optional[bool] = None
+    testimonials: Optional[bool] = None
+    contact: Optional[bool] = None
+
+# Default section visibility
+DEFAULT_SECTION_VISIBILITY = {
+    "about": True,
+    "services": True,
+    "portfolio": True,
+    "testimonials": True,
+    "contact": True
+}
+
 # ----- Site Content Model -----
 class SiteContent(BaseModel):
     # Hero Section

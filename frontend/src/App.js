@@ -9,6 +9,7 @@ import Portfolio from './components/Portfolio';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import SectionWrapper from './components/SectionWrapper';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
@@ -19,11 +20,21 @@ function HomePage() {
       <Navbar />
       <main>
         <Hero />
-        <About />
-        <Services />
-        <Portfolio />
-        <Testimonials />
-        <Contact />
+        <SectionWrapper sectionKey="about">
+          <About />
+        </SectionWrapper>
+        <SectionWrapper sectionKey="services">
+          <Services />
+        </SectionWrapper>
+        <SectionWrapper sectionKey="portfolio">
+          <Portfolio />
+        </SectionWrapper>
+        <SectionWrapper sectionKey="testimonials">
+          <Testimonials />
+        </SectionWrapper>
+        <SectionWrapper sectionKey="contact">
+          <Contact />
+        </SectionWrapper>
       </main>
       <Footer />
     </>

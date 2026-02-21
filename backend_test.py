@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://prestin-works.preview.emergentagent.com/api"
+BACKEND_URL = "https://kent-portfolio.preview.emergentagent.com/api"
 
 # Admin credentials for testing
 ADMIN_USERNAME = "kentprestin"

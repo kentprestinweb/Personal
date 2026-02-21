@@ -14,6 +14,13 @@ export function ContentProvider({ children }) {
   const [services, setServices] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [skills, setSkills] = useState([]);
+  const [sectionVisibility, setSectionVisibility] = useState({
+    about: true,
+    services: true,
+    portfolio: true,
+    testimonials: true,
+    contact: true
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -78,6 +85,18 @@ export function ContentProvider({ children }) {
     }
   };
 
+  const fetchSectionVisibility = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/section-visibility`);
+      if (response.ok) {
+        const data = await response.json();
+        setSectionVisibility(data);
+      }
+    } catch (err) {
+      console.error('Error fetching section visibility:', err);
+    }
+  };
+
   const refreshAll = async () => {
     setLoading(true);
     await Promise.all([
@@ -85,7 +104,8 @@ export function ContentProvider({ children }) {
       fetchPortfolio(),
       fetchServices(),
       fetchTestimonials(),
-      fetchSkills()
+      fetchSkills(),
+      fetchSectionVisibility()
     ]);
     setLoading(false);
   };
@@ -100,6 +120,7 @@ export function ContentProvider({ children }) {
     services,
     testimonials,
     skills,
+    sectionVisibility,
     loading,
     error,
     refreshAll,
@@ -108,6 +129,7 @@ export function ContentProvider({ children }) {
     setServices,
     setTestimonials,
     setSkills,
+    setSectionVisibility,
     BACKEND_URL
   };
 

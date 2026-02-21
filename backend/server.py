@@ -465,6 +465,14 @@ async def submit_contact(contact: ContactCreate):
     await db.contact_messages.insert_one(doc)
     return contact_obj
 
+# Get section visibility (public)
+@api_router.get("/section-visibility")
+async def get_section_visibility():
+    visibility = await db.section_visibility.find_one({}, {"_id": 0})
+    if not visibility:
+        return DEFAULT_SECTION_VISIBILITY
+    return visibility
+
 # ----- Admin Routes -----
 
 # Initialize admin credentials if not exists

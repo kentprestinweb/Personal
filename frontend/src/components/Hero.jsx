@@ -121,14 +121,6 @@ export default function Hero() {
               <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-3xl p-8">
                 <LogoSquare className="w-64 h-64" />
               </div>
-
-              {/* Floating badges */}
-              <div className="absolute -top-4 -right-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                🔥 Tradie Specialist
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-coral-500 to-coral-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                ⚡ Fast Results
-              </div>
             </div>
           </div>
         </div>

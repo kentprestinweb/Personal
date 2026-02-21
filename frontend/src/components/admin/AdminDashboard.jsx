@@ -291,6 +291,154 @@ function DashboardTab({ stats, messages }) {
   );
 }
 
+// Section Visibility Tab
+function VisibilityTab({ visibility, token, onUpdate }) {
+  const [formData, setFormData] = useState(visibility || {});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (visibility) setFormData(visibility);
+  }, [visibility]);
+
+  const sections = [
+    { key: 'about', label: 'About Me', description: 'Your bio, skills, and experience section' },
+    { key: 'services', label: 'Services', description: 'The services you offer to clients' },
+    { key: 'portfolio', label: 'Portfolio', description: 'Your work samples and projects' },
+    { key: 'testimonials', label: 'Testimonials', description: 'Client reviews and feedback' },
+    { key: 'contact', label: 'Contact', description: 'Contact form for enquiries' },
+  ];
+
+  const handleToggle = (key) => {
+    setFormData(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/admin/section-visibility`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        setMessage('Visibility settings saved!');
+        onUpdate();
+      } else {
+        setMessage('Failed to save settings');
+      }
+    } catch (err) {
+      setMessage('Error saving settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Eye className="text-teal-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Section Visibility</h2>
+            <p className="text-dark-400">
+              Hide sections that are still in progress. Hidden sections will appear blurred with a "Coming Soon" message to visitors.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Section Toggles */}
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+        <div className="space-y-4">
+          {sections.map((section) => (
+            <div 
+              key={section.key}
+              className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                formData[section.key] 
+                  ? 'bg-teal-500/10 border-teal-500/30' 
+                  : 'bg-dark-800/50 border-dark-700'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  formData[section.key] ? 'bg-teal-500/20' : 'bg-dark-700'
+                }`}>
+                  {formData[section.key] ? (
+                    <Eye className="text-teal-400" size={20} />
+                  ) : (
+                    <EyeOff className="text-dark-500" size={20} />
+                  )}
+                </div>
+                <div>
+                  <h3 className={`font-semibold ${formData[section.key] ? 'text-white' : 'text-dark-400'}`}>
+                    {section.label}
+                  </h3>
+                  <p className="text-dark-500 text-sm">{section.description}</p>
+                </div>
+              </div>
+              
+              {/* Toggle Switch */}
+              <button
+                onClick={() => handleToggle(section.key)}
+                className={`relative w-14 h-7 rounded-full transition-colors ${
+                  formData[section.key] ? 'bg-teal-500' : 'bg-dark-700'
+                }`}
+              >
+                <span 
+                  className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                    formData[section.key] ? 'translate-x-8' : 'translate-x-1'
+                  }`} 
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Save Button */}
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-dark-800">
+          {message && (
+            <p className={`text-sm ${message.includes('success') ? 'text-teal-400' : 'text-red-400'}`}>
+              {message}
+            </p>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="ml-auto px-6 py-3 bg-gradient-to-r from-teal-500 to-electric-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-teal-500/25 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            <Save size={18} />
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      {/* Info Box */}
+      <div className="bg-coral-500/10 border border-coral-500/30 rounded-2xl p-6">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-coral-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+            <EyeOff className="text-coral-400" size={16} />
+          </div>
+          <div>
+            <h4 className="text-coral-400 font-semibold mb-1">How it works</h4>
+            <p className="text-dark-400 text-sm">
+              When you hide a section, visitors will see a blurred version with a "Coming Soon" message. 
+              This lets you show your site to clients while still working on certain areas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Content Tab
 function ContentTab({ content, token, onUpdate }) {
   const [formData, setFormData] = useState(content || {});

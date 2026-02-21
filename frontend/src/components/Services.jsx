@@ -1,6 +1,6 @@
 import React from 'react';
 import { useContent } from '../context/ContentContext';
-import { Globe, Smartphone, ShoppingCart, Settings, Code, Paintbrush, Database, Rocket } from 'lucide-react';
+import { Globe, Smartphone, ShoppingCart, Settings, Code, Paintbrush, Database, Rocket, Wrench, MapPin, Search, Phone } from 'lucide-react';
 
 const iconMap = {
   globe: Globe,
@@ -11,6 +11,10 @@ const iconMap = {
   paintbrush: Paintbrush,
   database: Database,
   rocket: Rocket,
+  wrench: Wrench,
+  'map-pin': MapPin,
+  search: Search,
+  phone: Phone,
 };
 
 export default function Services() {

@@ -120,6 +120,7 @@ export default function AdminDashboard() {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'visibility', label: 'Section Visibility', icon: Eye },
     { id: 'content', label: 'Content', icon: FileText },
     { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'services', label: 'Services', icon: Code },

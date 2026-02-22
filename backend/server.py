@@ -15,6 +15,8 @@ import hashlib
 import secrets
 import base64
 import shutil
+import ssl
+import certifi
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,9 +25,23 @@ load_dotenv(ROOT_DIR / '.env')
 UPLOADS_DIR = ROOT_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+# MongoDB connection with SSL support for MongoDB Atlas
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+
+# Add SSL parameters for MongoDB Atlas connections (mongodb+srv://)
+if 'mongodb+srv' in mongo_url or 'mongodb.net' in mongo_url:
+    # Use certifi for SSL certificates
+    client = AsyncIOMotorClient(
+        mongo_url,
+        tls=True,
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=30000,
+        connectTimeoutMS=30000
+    )
+else:
+    # Local MongoDB connection
+    client = AsyncIOMotorClient(mongo_url)
+
 db = client[os.environ.get('DB_NAME', 'portfolio_db')]
 
 # Create the main app without a prefix

@@ -839,19 +839,54 @@ async def upload_excel_files(
     file1: UploadFile = File(...),
     file2: Optional[UploadFile] = File(None)
 ):
-    """Upload one or two Excel files and get column headers"""
+    """Upload one or two Excel/CSV files and get column headers"""
     try:
         session_id = str(uuid.uuid4())
         
+        def read_file(content, filename):
+            """Read file based on extension, trying multiple formats"""
+            file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+            
+            # Try CSV first if extension matches
+            if file_ext == 'csv':
+                try:
+                    return pd.read_csv(io.BytesIO(content))
+                except:
+                    pass
+            
+            # Try xlsx (openpyxl)
+            try:
+                return pd.read_excel(io.BytesIO(content), engine='openpyxl')
+            except:
+                pass
+            
+            # Try xls (xlrd)
+            try:
+                return pd.read_excel(io.BytesIO(content), engine='xlrd')
+            except:
+                pass
+            
+            # Try CSV as fallback (some files are CSV with wrong extension)
+            try:
+                return pd.read_csv(io.BytesIO(content))
+            except:
+                pass
+            
+            # Try with auto-detection
+            try:
+                return pd.read_excel(io.BytesIO(content))
+            except Exception as e:
+                raise ValueError(f"Could not read file '{filename}'. Supported formats: .xlsx, .xls, .csv. Error: {str(e)}")
+        
         # Read first file
         content1 = await file1.read()
-        df1 = pd.read_excel(io.BytesIO(content1), engine='openpyxl')
+        df1 = read_file(content1, file1.filename)
         
         # Read second file if provided
         df2 = None
         if file2:
             content2 = await file2.read()
-            df2 = pd.read_excel(io.BytesIO(content2), engine='openpyxl')
+            df2 = read_file(content2, file2.filename)
         
         # Store dataframes in session
         excel_sessions[session_id] = {
@@ -873,7 +908,7 @@ async def upload_excel_files(
         }
     except Exception as e:
         logger.error(f"Excel upload error: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Error reading Excel file: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
 
 @api_router.post("/excel/process")
 async def process_excel_files(request: ProcessExcelRequest):

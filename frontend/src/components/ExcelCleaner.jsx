@@ -258,7 +258,7 @@ const ExcelCleaner = () => {
                 ${file1 ? 'border-teal-500 bg-teal-500/10' : 'border-gray-600 hover:border-gray-500'}`}>
                 <input
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,.csv"
                   onChange={(e) => handleFileChange(e, 1)}
                   className="hidden"
                   id="file1-input"
@@ -269,7 +269,7 @@ const ExcelCleaner = () => {
                     {file1 ? file1.name : 'File 1 (Required)'}
                   </p>
                   <p className="text-gray-400 text-sm">
-                    {file1 ? 'Click to change' : 'Click to upload Excel file'}
+                    {file1 ? 'Click to change' : 'Excel (.xlsx, .xls) or CSV'}
                   </p>
                 </label>
                 {file1 && (
@@ -287,7 +287,7 @@ const ExcelCleaner = () => {
                 ${file2 ? 'border-teal-500 bg-teal-500/10' : 'border-gray-600 hover:border-gray-500'}`}>
                 <input
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,.csv"
                   onChange={(e) => handleFileChange(e, 2)}
                   className="hidden"
                   id="file2-input"
@@ -298,7 +298,7 @@ const ExcelCleaner = () => {
                     {file2 ? file2.name : 'File 2 (Optional)'}
                   </p>
                   <p className="text-gray-400 text-sm">
-                    {file2 ? 'Click to change' : 'Click to upload second file'}
+                    {file2 ? 'Click to change' : 'Excel (.xlsx, .xls) or CSV'}
                   </p>
                 </label>
                 {file2 && (

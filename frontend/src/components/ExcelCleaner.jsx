@@ -106,6 +106,7 @@ const ExcelCleaner = () => {
     setError(null);
 
     try {
+      console.log('Processing with session:', sessionId, 'mapping:', columnMapping);
       const response = await fetch(`${API_URL}/api/excel/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

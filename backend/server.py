@@ -1197,9 +1197,9 @@ async def download_excel(session_id: str):
         # Create Excel file in memory
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            # Convert boolean to checkbox symbols for Excel
+            # Convert boolean to Yes/No for Excel
             df_export = df.copy()
-            df_export['Contacted'] = df_export['Contacted'].apply(lambda x: '☑' if x else '☐')
+            df_export['Contacted'] = df_export['Contacted'].apply(lambda x: 'Yes' if x else 'No')
             df_export = df_export.drop(columns=['ID'], errors='ignore')
             df_export.to_excel(writer, index=False, sheet_name='Cleaned Data')
             
@@ -1214,25 +1214,34 @@ async def download_excel(session_id: str):
             contacted_col = 'A'
             last_row = len(df_export) + 1  # +1 for header
             
-            # Add data validation for checkbox toggle (dropdown with ☐ and ☑)
+            # Add data validation for Yes/No dropdown
             dv = DataValidation(
                 type="list",
-                formula1='"☐,☑"',
+                formula1='"Yes,No"',
                 allow_blank=False,
-                showDropDown=False  # False means SHOW the dropdown arrow
+                showDropDown=False  # False = SHOW the dropdown arrow
             )
-            dv.error = 'Please select ☐ or ☑'
+            dv.error = 'Please select Yes or No'
             dv.errorTitle = 'Invalid Input'
-            dv.prompt = 'Click to toggle'
-            dv.promptTitle = 'Contacted Status'
+            dv.prompt = 'Click dropdown arrow → to change'
+            dv.promptTitle = 'Contacted?'
+            dv.showInputMessage = True
             worksheet.add_data_validation(dv)
             dv.add(f'{contacted_col}2:{contacted_col}{last_row}')
             
-            # Style the Contacted column - center align and larger font
+            # Style the Contacted column with conditional colors
+            green_fill = PatternFill(start_color='D1FAE5', end_color='D1FAE5', fill_type='solid')  # Light green
+            red_fill = PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid')    # Light red
+            
             for row in range(2, last_row + 1):
                 cell = worksheet[f'{contacted_col}{row}']
-                cell.font = Font(size=14)
+                cell.font = Font(size=11, bold=True)
                 cell.alignment = Alignment(horizontal='center', vertical='center')
+                # Color based on value
+                if cell.value == 'Yes':
+                    cell.fill = green_fill
+                else:
+                    cell.fill = red_fill
             
             # Style header row
             header_fill = PatternFill(start_color='14B8A6', end_color='14B8A6', fill_type='solid')
@@ -1249,7 +1258,7 @@ async def download_excel(session_id: str):
                 length = min(length + 2, 50)  # Cap at 50
                 worksheet.column_dimensions[column_cells[0].column_letter].width = length
             
-            # Make Contacted column narrower since it's just checkboxes
+            # Make Contacted column appropriate width
             worksheet.column_dimensions['A'].width = 12
         
         output.seek(0)

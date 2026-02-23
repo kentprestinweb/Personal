@@ -1197,11 +1197,60 @@ async def download_excel(session_id: str):
         # Create Excel file in memory
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            # Convert boolean to Yes/No for Excel
+            # Convert boolean to checkbox symbols for Excel
             df_export = df.copy()
-            df_export['Contacted'] = df_export['Contacted'].apply(lambda x: 'Yes' if x else 'No')
+            df_export['Contacted'] = df_export['Contacted'].apply(lambda x: '☑' if x else '☐')
             df_export = df_export.drop(columns=['ID'], errors='ignore')
             df_export.to_excel(writer, index=False, sheet_name='Cleaned Data')
+            
+            # Get the worksheet to add data validation and formatting
+            worksheet = writer.sheets['Cleaned Data']
+            
+            # Import openpyxl components for formatting
+            from openpyxl.worksheet.datavalidation import DataValidation
+            from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+            
+            # Find the Contacted column (should be column A)
+            contacted_col = 'A'
+            last_row = len(df_export) + 1  # +1 for header
+            
+            # Add data validation for checkbox toggle (dropdown with ☐ and ☑)
+            dv = DataValidation(
+                type="list",
+                formula1='"☐,☑"',
+                allow_blank=False,
+                showDropDown=False  # False means SHOW the dropdown arrow
+            )
+            dv.error = 'Please select ☐ or ☑'
+            dv.errorTitle = 'Invalid Input'
+            dv.prompt = 'Click to toggle'
+            dv.promptTitle = 'Contacted Status'
+            worksheet.add_data_validation(dv)
+            dv.add(f'{contacted_col}2:{contacted_col}{last_row}')
+            
+            # Style the Contacted column - center align and larger font
+            for row in range(2, last_row + 1):
+                cell = worksheet[f'{contacted_col}{row}']
+                cell.font = Font(size=14)
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Style header row
+            header_fill = PatternFill(start_color='14B8A6', end_color='14B8A6', fill_type='solid')
+            header_font = Font(bold=True, color='FFFFFF')
+            for col_num, column_title in enumerate(df_export.columns, 1):
+                cell = worksheet.cell(row=1, column=col_num)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Auto-adjust column widths
+            for column_cells in worksheet.columns:
+                length = max(len(str(cell.value or '')) for cell in column_cells)
+                length = min(length + 2, 50)  # Cap at 50
+                worksheet.column_dimensions[column_cells[0].column_letter].width = length
+            
+            # Make Contacted column narrower since it's just checkboxes
+            worksheet.column_dimensions['A'].width = 12
         
         output.seek(0)
         

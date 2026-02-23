@@ -817,6 +817,273 @@ async def admin_get_stats(user: dict = Depends(verify_token)):
         "skills": skills_count
     }
 
+# ----- Excel Tool Endpoints -----
+
+# Store uploaded Excel data temporarily (in production, use Redis or database)
+excel_sessions = {}
+
+class ColumnMapping(BaseModel):
+    business_name: Optional[List[str]] = None
+    website: Optional[List[str]] = None
+    phone: Optional[List[str]] = None
+    email: Optional[List[str]] = None
+    address: Optional[List[str]] = None  # Can be multiple columns to merge
+    opening_hours: Optional[List[str]] = None
+
+class ProcessExcelRequest(BaseModel):
+    session_id: str
+    column_mapping: ColumnMapping
+
+@api_router.post("/excel/upload")
+async def upload_excel_files(
+    file1: UploadFile = File(...),
+    file2: Optional[UploadFile] = File(None)
+):
+    """Upload one or two Excel files and get column headers"""
+    try:
+        session_id = str(uuid.uuid4())
+        
+        # Read first file
+        content1 = await file1.read()
+        df1 = pd.read_excel(io.BytesIO(content1), engine='openpyxl')
+        
+        # Read second file if provided
+        df2 = None
+        if file2:
+            content2 = await file2.read()
+            df2 = pd.read_excel(io.BytesIO(content2), engine='openpyxl')
+        
+        # Store dataframes in session
+        excel_sessions[session_id] = {
+            "df1": df1,
+            "df2": df2,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        # Get column headers from both files
+        columns1 = df1.columns.tolist()
+        columns2 = df2.columns.tolist() if df2 is not None else []
+        
+        return {
+            "session_id": session_id,
+            "file1_columns": columns1,
+            "file2_columns": columns2,
+            "file1_rows": len(df1),
+            "file2_rows": len(df2) if df2 is not None else 0
+        }
+    except Exception as e:
+        logger.error(f"Excel upload error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error reading Excel file: {str(e)}")
+
+@api_router.post("/excel/process")
+async def process_excel_files(request: ProcessExcelRequest):
+    """Process and merge Excel files based on column mapping"""
+    try:
+        session_id = request.session_id
+        mapping = request.column_mapping
+        
+        if session_id not in excel_sessions:
+            raise HTTPException(status_code=404, detail="Session not found. Please upload files again.")
+        
+        session = excel_sessions[session_id]
+        df1 = session["df1"]
+        df2 = session["df2"]
+        
+        # Function to extract and combine columns
+        def extract_columns(df, column_list, combine=False):
+            if not column_list:
+                return None
+            existing_cols = [c for c in column_list if c in df.columns]
+            if not existing_cols:
+                return None
+            if combine:
+                # Combine multiple columns (for addresses)
+                return df[existing_cols].apply(
+                    lambda row: ', '.join([str(v) for v in row if pd.notna(v) and str(v).strip()]), 
+                    axis=1
+                )
+            else:
+                # Take first non-null value from specified columns
+                return df[existing_cols].bfill(axis=1).iloc[:, 0]
+        
+        # Process each dataframe
+        processed_dfs = []
+        
+        for df in [df1, df2]:
+            if df is None:
+                continue
+                
+            processed = pd.DataFrame()
+            
+            # Extract each field
+            if mapping.business_name:
+                val = extract_columns(df, mapping.business_name)
+                if val is not None:
+                    processed['Business Name'] = val
+            
+            if mapping.website:
+                val = extract_columns(df, mapping.website)
+                if val is not None:
+                    processed['Website'] = val
+            
+            if mapping.phone:
+                val = extract_columns(df, mapping.phone)
+                if val is not None:
+                    processed['Phone'] = val
+            
+            if mapping.email:
+                val = extract_columns(df, mapping.email)
+                if val is not None:
+                    processed['Email'] = val
+            
+            if mapping.address:
+                val = extract_columns(df, mapping.address, combine=True)
+                if val is not None:
+                    processed['Address'] = val
+            
+            if mapping.opening_hours:
+                val = extract_columns(df, mapping.opening_hours)
+                if val is not None:
+                    processed['Opening Hours'] = val
+            
+            if not processed.empty:
+                processed_dfs.append(processed)
+        
+        if not processed_dfs:
+            raise HTTPException(status_code=400, detail="No data could be extracted with the provided mapping")
+        
+        # Merge dataframes
+        merged_df = pd.concat(processed_dfs, ignore_index=True)
+        
+        # Clean phone numbers for comparison (remove non-digits)
+        def clean_phone(phone):
+            if pd.isna(phone):
+                return None
+            return ''.join(filter(str.isdigit, str(phone)))
+        
+        # Clean email for comparison (lowercase, strip)
+        def clean_email(email):
+            if pd.isna(email):
+                return None
+            return str(email).lower().strip()
+        
+        # Remove duplicates based on phone OR email
+        merged_df['_clean_phone'] = merged_df['Phone'].apply(clean_phone) if 'Phone' in merged_df.columns else None
+        merged_df['_clean_email'] = merged_df['Email'].apply(clean_email) if 'Email' in merged_df.columns else None
+        
+        # Create a composite key for deduplication
+        def get_dedup_key(row):
+            keys = []
+            if pd.notna(row.get('_clean_phone')) and row.get('_clean_phone'):
+                keys.append(f"phone:{row['_clean_phone']}")
+            if pd.notna(row.get('_clean_email')) and row.get('_clean_email'):
+                keys.append(f"email:{row['_clean_email']}")
+            return tuple(keys) if keys else (f"row:{uuid.uuid4()}",)
+        
+        # Track seen keys and remove duplicates
+        seen_keys = set()
+        rows_to_keep = []
+        
+        for idx, row in merged_df.iterrows():
+            dedup_keys = get_dedup_key(row)
+            is_duplicate = False
+            for key in dedup_keys:
+                if key in seen_keys:
+                    is_duplicate = True
+                    break
+            if not is_duplicate:
+                rows_to_keep.append(idx)
+                for key in dedup_keys:
+                    seen_keys.add(key)
+        
+        # Keep only non-duplicate rows
+        final_df = merged_df.loc[rows_to_keep].copy()
+        
+        # Remove helper columns
+        final_df = final_df.drop(columns=['_clean_phone', '_clean_email'], errors='ignore')
+        
+        # Add Contacted checkbox column
+        final_df.insert(0, 'Contacted', False)
+        
+        # Add unique ID for frontend
+        final_df.insert(0, 'ID', [str(uuid.uuid4()) for _ in range(len(final_df))])
+        
+        # Store processed data
+        excel_sessions[session_id]["processed_df"] = final_df
+        
+        # Convert to records for JSON response
+        records = final_df.to_dict(orient='records')
+        
+        # Stats
+        original_count = len(df1) + (len(df2) if df2 is not None else 0)
+        final_count = len(final_df)
+        duplicates_removed = original_count - final_count
+        
+        return {
+            "success": True,
+            "data": records,
+            "stats": {
+                "original_count": original_count,
+                "final_count": final_count,
+                "duplicates_removed": duplicates_removed
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Excel processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing Excel files: {str(e)}")
+
+@api_router.post("/excel/update-contacted")
+async def update_contacted_status(session_id: str = Form(...), contacted_ids: str = Form(...)):
+    """Update contacted status for specific rows"""
+    try:
+        if session_id not in excel_sessions or "processed_df" not in excel_sessions[session_id]:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        ids_list = json.loads(contacted_ids)
+        df = excel_sessions[session_id]["processed_df"]
+        df.loc[df['ID'].isin(ids_list), 'Contacted'] = True
+        df.loc[~df['ID'].isin(ids_list), 'Contacted'] = False
+        
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/excel/download/{session_id}")
+async def download_excel(session_id: str):
+    """Download the processed Excel file"""
+    try:
+        if session_id not in excel_sessions or "processed_df" not in excel_sessions[session_id]:
+            raise HTTPException(status_code=404, detail="Session not found. Please process files again.")
+        
+        df = excel_sessions[session_id]["processed_df"]
+        
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            # Convert boolean to Yes/No for Excel
+            df_export = df.copy()
+            df_export['Contacted'] = df_export['Contacted'].apply(lambda x: 'Yes' if x else 'No')
+            df_export = df_export.drop(columns=['ID'], errors='ignore')
+            df_export.to_excel(writer, index=False, sheet_name='Cleaned Data')
+        
+        output.seek(0)
+        
+        # Generate filename with timestamp
+        filename = f"cleaned_leads_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Excel download error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating Excel file: {str(e)}")
+
 # Include the router and mount uploads
 app.include_router(api_router)
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")

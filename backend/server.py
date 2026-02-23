@@ -1047,7 +1047,16 @@ async def process_excel_files(request: ProcessExcelRequest):
         excel_sessions[session_id]["processed_df"] = final_df
         
         # Convert to records for JSON response
-        records = final_df.to_dict(orient='records')
+        # Replace NaN/Infinity with None for JSON compatibility
+        final_df_clean = final_df.replace([float('inf'), float('-inf')], None)
+        final_df_clean = final_df_clean.where(pd.notna(final_df_clean), None)
+        records = final_df_clean.to_dict(orient='records')
+        
+        # Clean up any remaining NaN values in records
+        for record in records:
+            for key, value in record.items():
+                if pd.isna(value) or (isinstance(value, float) and (value != value)):  # NaN check
+                    record[key] = None
         
         # Stats
         original_count = len(df1) + (len(df2) if df2 is not None else 0)

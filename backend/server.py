@@ -990,6 +990,97 @@ async def process_excel_files(request: ProcessExcelRequest):
         # Merge dataframes
         merged_df = pd.concat(processed_dfs, ignore_index=True)
         
+        # ===== DATA CLEANING - Remove anomalies =====
+        import re
+        
+        # Common garbage patterns from web scraping
+        garbage_patterns = [
+            r'^[\s\·\•\-\|\,\.\_\:\;\!\?\#\@\*\&\^\%\$\~\`]+$',  # Only special characters
+            r'^Â[\s\·]*$',  # Encoding garbage like "Â·"
+            r'^\s*N/?A\s*$',  # N/A, NA
+            r'^\s*null\s*$',  # null
+            r'^\s*undefined\s*$',  # undefined
+            r'^\s*none\s*$',  # none
+            r'^\s*-\s*$',  # just dash
+            r'^\s*\.\s*$',  # just dot
+            r'^\d{1,2}$',  # Just 1-2 digits (not useful)
+        ]
+        garbage_regex = re.compile('|'.join(garbage_patterns), re.IGNORECASE)
+        
+        def is_garbage(value):
+            """Check if value is garbage/anomaly"""
+            if pd.isna(value):
+                return False  # NaN handled separately
+            val_str = str(value).strip()
+            if len(val_str) < 2:  # Too short
+                return True
+            if garbage_regex.match(val_str):
+                return True
+            # Check if mostly non-alphanumeric (gibberish)
+            alnum_count = sum(c.isalnum() or c.isspace() for c in val_str)
+            if len(val_str) > 3 and alnum_count / len(val_str) < 0.3:
+                return True
+            return False
+        
+        def clean_value(value):
+            """Clean a single value, return None if garbage"""
+            if pd.isna(value):
+                return None
+            if is_garbage(value):
+                return None
+            # Clean up encoding issues
+            val_str = str(value).strip()
+            val_str = val_str.replace('Â·', '').replace('Â', '').strip()
+            val_str = re.sub(r'\s+', ' ', val_str)  # Normalize whitespace
+            return val_str if val_str and len(val_str) >= 2 else None
+        
+        def is_valid_phone(phone):
+            """Check if phone number is valid (has enough digits)"""
+            if pd.isna(phone):
+                return True  # Allow empty
+            digits = ''.join(filter(str.isdigit, str(phone)))
+            return len(digits) >= 8  # At least 8 digits for a valid phone
+        
+        def is_valid_email(email):
+            """Check if email is valid"""
+            if pd.isna(email):
+                return True  # Allow empty
+            email_str = str(email).strip()
+            if is_garbage(email_str):
+                return False
+            # Basic email pattern
+            return '@' in email_str and '.' in email_str.split('@')[-1]
+        
+        def is_valid_website(website):
+            """Check if website is valid"""
+            if pd.isna(website):
+                return True  # Allow empty
+            website_str = str(website).strip().lower()
+            if is_garbage(website_str):
+                return False
+            # Should contain a dot and common TLD patterns
+            return '.' in website_str and len(website_str) > 5
+        
+        # Apply cleaning to each column
+        for col in merged_df.columns:
+            merged_df[col] = merged_df[col].apply(clean_value)
+        
+        # Additional validation for specific columns
+        if 'Phone' in merged_df.columns:
+            merged_df.loc[~merged_df['Phone'].apply(is_valid_phone), 'Phone'] = None
+        
+        if 'Email' in merged_df.columns:
+            merged_df.loc[~merged_df['Email'].apply(is_valid_email), 'Email'] = None
+        
+        if 'Website' in merged_df.columns:
+            merged_df.loc[~merged_df['Website'].apply(is_valid_website), 'Website'] = None
+        
+        # Remove rows that have no useful data (all None except ID columns)
+        data_columns = [c for c in merged_df.columns if c not in ['ID', 'Contacted']]
+        merged_df = merged_df.dropna(subset=data_columns, how='all')
+        
+        # ===== END DATA CLEANING =====
+        
         # Clean phone numbers for comparison (remove non-digits)
         def clean_phone(phone):
             if pd.isna(phone):

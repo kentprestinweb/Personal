@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import SectionWrapper from './components/SectionWrapper';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
+import ExcelCleaner from './components/ExcelCleaner';
 import './App.css';
 
 function HomePage() {
@@ -50,6 +51,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/tools/excel-cleaner" element={<ExcelCleaner />} />
           </Routes>
         </div>
       </Router>

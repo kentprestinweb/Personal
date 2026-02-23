@@ -1268,14 +1268,14 @@ async def download_excel(session_id: str):
                 cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                 cell.border = thin_border
             
-            # Apply text wrapping and borders to ALL data cells (prevents spill over)
+            # Apply shrink_to_fit and borders to ALL data cells (text cut off at cell edge)
             for row in range(2, last_row + 1):
                 for col in range(1, len(df_export.columns) + 1):
                     cell = worksheet.cell(row=row, column=col)
                     cell.alignment = Alignment(
                         horizontal='left' if col > 1 else 'center',
                         vertical='center',
-                        wrap_text=True  # This prevents text from spilling over
+                        shrink_to_fit=True  # Shrinks text to fit in cell, stays on one line
                     )
                     cell.border = thin_border
             

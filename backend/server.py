@@ -1268,44 +1268,26 @@ async def download_excel(session_id: str):
                 cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                 cell.border = thin_border
             
-            # Apply shrink_to_fit and borders to ALL data cells (text cut off at cell edge)
+            # Apply alignment and borders to ALL data cells
+            # Text will be cut off at cell edge due to borders on adjacent cells
             for row in range(2, last_row + 1):
                 for col in range(1, len(df_export.columns) + 1):
                     cell = worksheet.cell(row=row, column=col)
                     cell.alignment = Alignment(
                         horizontal='left' if col > 1 else 'center',
-                        vertical='center',
-                        shrink_to_fit=True  # Shrinks text to fit in cell, stays on one line
+                        vertical='center'
+                        # No wrap_text, no shrink_to_fit = normal text, cut off at border
                     )
                     cell.border = thin_border
             
-            # Set column widths
-            column_widths = {
-                'A': 12,  # Contacted
-            }
-            
-            # Auto-adjust other column widths with max limit
-            for col_idx, column_cells in enumerate(worksheet.columns, 1):
-                col_letter = column_cells[0].column_letter
-                if col_letter in column_widths:
-                    worksheet.column_dimensions[col_letter].width = column_widths[col_letter]
+            # Set UNIFORM column widths for all columns
+            uniform_width = 20  # All columns same width
+            for col_idx in range(1, len(df_export.columns) + 1):
+                col_letter = worksheet.cell(row=1, column=col_idx).column_letter
+                if col_letter == 'A':  # Contacted column - smaller
+                    worksheet.column_dimensions[col_letter].width = 12
                 else:
-                    # Calculate width based on content, but cap it
-                    max_length = 0
-                    for cell in column_cells:
-                        try:
-                            cell_len = len(str(cell.value or ''))
-                            if cell_len > max_length:
-                                max_length = cell_len
-                        except:
-                            pass
-                    # Cap width between 15 and 40
-                    adjusted_width = min(max(max_length + 2, 15), 40)
-                    worksheet.column_dimensions[col_letter].width = adjusted_width
-            
-            # Set row height to accommodate wrapped text
-            for row in range(1, last_row + 1):
-                worksheet.row_dimensions[row].height = 20
+                    worksheet.column_dimensions[col_letter].width = uniform_width
         
         output.seek(0)
         

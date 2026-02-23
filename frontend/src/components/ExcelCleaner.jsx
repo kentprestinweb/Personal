@@ -117,8 +117,8 @@ const ExcelCleaner = () => {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Processing failed');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -127,7 +127,13 @@ const ExcelCleaner = () => {
       setContactedIds(new Set());
       setStep(3);
     } catch (err) {
-      setError(err.message);
+      console.error('Process error:', err);
+      if (err.message === 'Failed to fetch') {
+        setError('Connection failed. Please try uploading your files again.');
+        setStep(1); // Go back to upload step
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

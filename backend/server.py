@@ -1209,6 +1209,7 @@ async def download_excel(session_id: str):
             # Import openpyxl components for formatting
             from openpyxl.worksheet.datavalidation import DataValidation
             from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+            from openpyxl.formatting.rule import FormulaRule
             
             # Find the Contacted column (should be column A)
             contacted_col = 'A'
@@ -1229,37 +1230,82 @@ async def download_excel(session_id: str):
             worksheet.add_data_validation(dv)
             dv.add(f'{contacted_col}2:{contacted_col}{last_row}')
             
-            # Style the Contacted column with conditional colors
-            green_fill = PatternFill(start_color='D1FAE5', end_color='D1FAE5', fill_type='solid')  # Light green
-            red_fill = PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid')    # Light red
+            # Add CONDITIONAL FORMATTING for dynamic colors
+            green_fill = PatternFill(start_color='D1FAE5', end_color='D1FAE5', fill_type='solid')
+            red_fill = PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid')
             
+            # Rule for "Yes" = green
+            worksheet.conditional_formatting.add(
+                f'{contacted_col}2:{contacted_col}{last_row}',
+                FormulaRule(formula=[f'{contacted_col}2="Yes"'], fill=green_fill)
+            )
+            # Rule for "No" = red
+            worksheet.conditional_formatting.add(
+                f'{contacted_col}2:{contacted_col}{last_row}',
+                FormulaRule(formula=[f'{contacted_col}2="No"'], fill=red_fill)
+            )
+            
+            # Style the Contacted column
             for row in range(2, last_row + 1):
                 cell = worksheet[f'{contacted_col}{row}']
                 cell.font = Font(size=11, bold=True)
                 cell.alignment = Alignment(horizontal='center', vertical='center')
-                # Color based on value
-                if cell.value == 'Yes':
-                    cell.fill = green_fill
-                else:
-                    cell.fill = red_fill
             
             # Style header row
             header_fill = PatternFill(start_color='14B8A6', end_color='14B8A6', fill_type='solid')
             header_font = Font(bold=True, color='FFFFFF')
+            thin_border = Border(
+                left=Side(style='thin', color='E5E7EB'),
+                right=Side(style='thin', color='E5E7EB'),
+                top=Side(style='thin', color='E5E7EB'),
+                bottom=Side(style='thin', color='E5E7EB')
+            )
+            
             for col_num, column_title in enumerate(df_export.columns, 1):
                 cell = worksheet.cell(row=1, column=col_num)
                 cell.fill = header_fill
                 cell.font = header_font
-                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                cell.border = thin_border
             
-            # Auto-adjust column widths
-            for column_cells in worksheet.columns:
-                length = max(len(str(cell.value or '')) for cell in column_cells)
-                length = min(length + 2, 50)  # Cap at 50
-                worksheet.column_dimensions[column_cells[0].column_letter].width = length
+            # Apply text wrapping and borders to ALL data cells (prevents spill over)
+            for row in range(2, last_row + 1):
+                for col in range(1, len(df_export.columns) + 1):
+                    cell = worksheet.cell(row=row, column=col)
+                    cell.alignment = Alignment(
+                        horizontal='left' if col > 1 else 'center',
+                        vertical='center',
+                        wrap_text=True  # This prevents text from spilling over
+                    )
+                    cell.border = thin_border
             
-            # Make Contacted column appropriate width
-            worksheet.column_dimensions['A'].width = 12
+            # Set column widths
+            column_widths = {
+                'A': 12,  # Contacted
+            }
+            
+            # Auto-adjust other column widths with max limit
+            for col_idx, column_cells in enumerate(worksheet.columns, 1):
+                col_letter = column_cells[0].column_letter
+                if col_letter in column_widths:
+                    worksheet.column_dimensions[col_letter].width = column_widths[col_letter]
+                else:
+                    # Calculate width based on content, but cap it
+                    max_length = 0
+                    for cell in column_cells:
+                        try:
+                            cell_len = len(str(cell.value or ''))
+                            if cell_len > max_length:
+                                max_length = cell_len
+                        except:
+                            pass
+                    # Cap width between 15 and 40
+                    adjusted_width = min(max(max_length + 2, 15), 40)
+                    worksheet.column_dimensions[col_letter].width = adjusted_width
+            
+            # Set row height to accommodate wrapped text
+            for row in range(1, last_row + 1):
+                worksheet.row_dimensions[row].height = 20
         
         output.seek(0)
         

@@ -1201,6 +1201,11 @@ async def download_excel(session_id: str):
             df_export = df.copy()
             df_export['Contacted'] = df_export['Contacted'].apply(lambda x: 'Yes' if x else 'No')
             df_export = df_export.drop(columns=['ID'], errors='ignore')
+            
+            # Replace empty/None cells with a single space so text doesn't spill over
+            df_export = df_export.fillna(' ')
+            df_export = df_export.replace('', ' ')
+            
             df_export.to_excel(writer, index=False, sheet_name='Cleaned Data')
             
             # Get the worksheet to add data validation and formatting
